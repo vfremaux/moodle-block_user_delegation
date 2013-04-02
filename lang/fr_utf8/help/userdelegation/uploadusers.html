@@ -1,0 +1,32 @@
+<h2>Administration déléguée des utilisateurs</h2>
+<h3>Import d'utilisateurs par listes</h3>
+
+<p>Si vous désirez toutefois importer manuellement des comptes utilisateurs à partir d'un fichier texte, ce fichier doit être formaté de la façon suivante :</p>
+
+<ul><li>chaque ligne du fichier contient un enregistrement</li>
+<li>les données de chaque enregistrement sont séparées par une virgule (ou un autre caractère de séparation)</li>
+<li>le premier enregistrement contient le nom des champs qui composent les enregistrements, et détermine ainsi la structure de la suite du fichier</li>
+</ul>
+
+<p><b>Champs requis</b> : ces champs doivent être mentionnés dans le premier enregistrement et définis pour tous les utilisateurs</p>
+
+<p><code>firstname</code>, <code>lastname</code> pour un ajout ou <code>username</code> pour une mise à jour</p>
+
+<p><b>Champs demandés pour la création</b> : <code>email</code>, <code>city</code> pour la ville (en majuscules), <code>institution</code>, <code>department</code> (code département).
+
+<p><b>Champs optionnels</b> : tous ces champs sont optionnels. Les valeurs éventuellement précisées dans le fichier seront utilisées. Sinon, c'est la valeur par défaut pour ce champ qui sera utilisée.</p>
+
+<p><code>country</code> (FR, UK), <!-- lang, auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description, <!-- mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
+
+<p><b>Champs de profil personnalisés</b> : optionnel, xxxxx doit être remplacé par le nom abrégé du champ personnalisé</p>
+
+        <code>profile_field_xxxxx</code>
+
+<p><b>Champs spécial</b> : utile pour modifier les noms d'utilisateurs ou supprimer des utilisateurs, voir ci-dessous</p>
+
+<code>deleted, oldusername</code>
+
+<p><b>Champs d'inscription</b> : Les champs d'insription ne sont pas gérés par ce mode d'importation.</p>
+
+<p>Les virgules séparant les données doivent être encodées &#44 - le script les interprétera automatiquement comme des virgules.
+Pour les données booléennes, utilisez 0 pour faux et 1 pour vrai.</p>
