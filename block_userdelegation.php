@@ -150,7 +150,7 @@ class block_userdelegation extends block_base {
 			$overridetargetrole[] = get_field('role', 'id', 'shortname', 'student');
 			$overridetargetrole[] = get_field('role', 'id', 'shortname', 'teacher');
 			$overridetargetrole[] = get_field('role', 'id', 'shortname', 'guest');
-			foreach($overriddetargetrole as $t){
+			foreach($overridetargetrole as $t){
 				allow_override($roleid, $t);
 			}
 			
