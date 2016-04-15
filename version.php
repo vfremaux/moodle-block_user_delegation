@@ -29,4 +29,4 @@ $plugin->version   = 2016031800;        // The current plugin version (Date: YYY
 $plugin->requires  = 2012120301;        // Requires this Moodle version (2.4)
 $plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity = MATURITY_RC;
-$plugin->release = "2.7 (Build 2016031800)";
+$plugin->release = "2.8.0 (Build 2016031800)";
