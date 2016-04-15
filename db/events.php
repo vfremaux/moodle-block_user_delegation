@@ -22,30 +22,13 @@ defined('MOODLE_INTERNAL') || die();
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * A library to interact with other parts of Moodle
  */
 
-/**
- * checks if user has some user creation cap somewhere
- */
-function user_delegation_has_delegation_somewhere() {
-    global $USER;
-
-    // TODO : explore caps for a moodle/local:overridemy positive answer.
-    $hassome = get_user_capability_course('block/user_delegation:cancreateusers', $USER->id, false); 
-    if (!empty($hassome)) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Get the count of users that are on my behalf
- */
-function get_onbehalf_user_count() {
-    global $USER;
-
-    return 0;
-}
+$handlers = array(
+    'groups_member_added' => array (
+        'handlerfile'      => '/blocks/user_delegation/observers.php',
+        'handlerfunction'  => 'block_user_delegation_groups_member_added',
+        'schedule'         => 'instant',
+        'internal'         => 1,
+    ), 
+);

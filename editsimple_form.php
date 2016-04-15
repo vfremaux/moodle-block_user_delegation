@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
-class user_editadvanced_form extends moodleform {
+class user_editsimple_form extends moodleform {
 
     // Define the form
     function definition() {
@@ -35,7 +35,6 @@ class user_editadvanced_form extends moodleform {
         $mform =& $this->_form;
         $editoroptions = null;
         $filemanageroptions = null;
-        $userid = $USER->id;
 
         if (is_array($this->_customdata)) {
             if (array_key_exists('editoroptions', $this->_customdata)) {
@@ -49,7 +48,7 @@ class user_editadvanced_form extends moodleform {
             }
         }
 
-        //Accessibility: "Required" is bad legend text.
+        // Accessibility: "Required" is bad legend text.
         $strgeneral  = get_string('general');
         $strrequired = get_string('required');
 
@@ -57,8 +56,11 @@ class user_editadvanced_form extends moodleform {
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('hidden', 'course', $COURSE->id);
+        $mform->addElement('hidden', 'course');
         $mform->setType('course', PARAM_INT);
+
+        $mform->addElement('hidden', 'blockid');
+        $mform->setType('blockid', PARAM_INT);
 
         /// Print the required moodle fields first
         $mform->addElement('header', 'moodle', $strgeneral);
@@ -66,11 +68,13 @@ class user_editadvanced_form extends moodleform {
         $mform->addElement('text', 'username', get_string('username'), 'size="20"');
         $mform->addRule('username', $strrequired, 'required', null, 'client');
         $mform->setType('username', PARAM_RAW);
-  
-        $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
-        $mform->addHelpButton('suspended', 'suspended', 'auth');
 
-        if (!empty($CFG->passwordpolicy)){
+        if (!userdelegation::has_owners($this->_customdata['userid'])) {
+            $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
+            $mform->addHelpButton('suspended', 'suspended', 'auth');
+        }
+
+        if (!empty($CFG->passwordpolicy)) {
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
  
@@ -82,18 +86,53 @@ class user_editadvanced_form extends moodleform {
         $mform->addHelpButton('preference_auth_forcepasswordchange', 'forcepasswordchange');
 
         /// shared fields
-        useredit_shared_definition($mform, $editoroptions, $filemanageroptions);
+        $mform->addElement('text', 'firstname', get_string('firstname'));
+        $mform->addRule('firstname', $strrequired, 'required', null, 'client');
+        $mform->setType('firstname', PARAM_TEXT);
 
-        /// Next the customisable profile fields
-        profile_definition($mform, $userid);
+        $mform->addElement('text', 'lastname', get_string('lastname'));
+        $mform->addRule('lastname', $strrequired, 'required', null, 'client');
+        $mform->setType('lastname', PARAM_TEXT);
 
-        if ($userid == -1) {
-            $btnstring = get_string('createuser');
-        } else {
-            $btnstring = get_string('updatemyprofile');
+        $mform->addElement('text', 'email', get_string('email'));
+        $mform->addRule('email', $strrequired, 'required', null, 'client');
+        $mform->setType('email', PARAM_TEXT);
+
+        $mform->addElement('text', 'institution', get_string('institution', 'block_user_delegation'));
+        $mform->setType('institution', PARAM_TEXT);
+
+        $mform->addElement('text', 'department', get_string('department'));
+        $mform->setType('department', PARAM_TEXT);
+        $mform->setAdvanced('department');
+
+        $choices = get_string_manager()->get_list_of_countries();
+        $choices = array('' => get_string('selectacountry').'...') + $choices;
+        $mform->addElement('select', 'country', get_string('selectacountry'), $choices);
+        $mform->addRule('country', $strrequired, 'required', null, 'client');
+        if (!empty($CFG->country)) {
+            $mform->setDefault('country', $CFG->country);
         }
 
-        $this->add_action_buttons(false, $btnstring);
+        $mform->addElement('text', 'phone1', get_string('phone'));
+        $mform->setType('phone1', PARAM_TEXT);
+        $mform->setAdvanced('phone1');
+
+        $mform->addElement('text', 'phone2', get_string('phone2'));
+        $mform->setType('phone2', PARAM_TEXT);
+        $mform->setAdvanced('phone2');
+
+        $mform->addElement('hidden', 'lang', $CFG->lang);
+        $mform->setType('lang', PARAM_TEXT);
+
+        /// Next the customisable profile fields
+
+        if ($this->_customdata['userid'] == -1) {
+            $btnstring = get_string('createuser');
+        } else {
+            $btnstring = get_string('update');
+        }
+
+        $this->add_action_buttons(true, $btnstring);
     }
 
     function definition_after_data() {
@@ -101,12 +140,13 @@ class user_editadvanced_form extends moodleform {
 
         $mform =& $this->_form;
         if ($userid = $mform->getElementValue('id')) {
-            $user = $DB->get_record('user', array('id'=>$userid));
+            $user = $DB->get_record('user', array('id' => $userid));
         } else {
             $user = false;
         }
 
         // if language does not exist, use site default lang
+        /*
         if ($langsel = $mform->getElementValue('lang')) {
             $lang = reset($langsel);
             // check lang exists
@@ -115,20 +155,7 @@ class user_editadvanced_form extends moodleform {
                 $lang_el->setValue($CFG->lang);
             }
         }
-
-        // user can not change own auth method
-        if ($userid == $USER->id) {
-            $mform->hardFreeze('auth');
-            $mform->hardFreeze('preference_auth_forcepasswordchange');
-        }
-
-        // admin must choose some password and supply correct email
-        if (!empty($USER->newadminuser)) {
-            $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
-            if ($mform->elementExists('suspended')) {
-                $mform->removeElement('suspended');
-            }
-        }
+        */
 
         // require password for new users
         if ($userid == -1) {
@@ -148,29 +175,7 @@ class user_editadvanced_form extends moodleform {
             }
         }
 
-        // Print picture.
-        if (empty($USER->newadminuser)) {
-            if ($user) {
-                $context = context_user::instance($user->id, MUST_EXIST);
-                $fs = get_file_storage();
-                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
-                if (!empty($user->picture) && $hasuploadedpicture) {
-                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size'=>64));
-                } else {
-                    $imagevalue = get_string('none');
-                }
-            } else {
-                $imagevalue = get_string('none');
-            }
-            $imageelement = $mform->getElement('currentpicture');
-            $imageelement->setValue($imagevalue);
-
-            if ($user && $mform->elementExists('deletepicture') && !$hasuploadedpicture) {
-                $mform->removeElement('deletepicture');
-            }
-        }
-
-        // Next the customisable profile fields.
+        /// Next the customisable profile fields
         profile_definition_after_data($mform, $userid);
     }
 
@@ -180,7 +185,7 @@ class user_editadvanced_form extends moodleform {
         $usernew = (object)$usernew;
         $usernew->username = trim($usernew->username);
 
-        $user = $DB->get_record('user', array('id' => $usernew->id));
+        $user = $DB->get_record('user', array('id'=>$usernew->id));
         $err = array();
 
         if (!empty($usernew->newpassword)) {
@@ -191,14 +196,14 @@ class user_editadvanced_form extends moodleform {
         }
 
         if (empty($usernew->username)) {
-            // Might be only whitespace.
+            //might be only whitespace
             $err['username'] = get_string('required');
         } else if (!$user or $user->username !== $usernew->username) {
-            // Check new username does not exist.
-            if ($DB->record_exists('user', array('username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id))) {
+            //check new username does not exist
+            if ($DB->record_exists('user', array('username'=>$usernew->username, 'mnethostid'=>$CFG->mnet_localhost_id))) {
                 $err['username'] = get_string('usernameexists');
             }
-            // Check allowed characters.
+            //check allowed characters
             if ($usernew->username !== textlib::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
@@ -211,12 +216,12 @@ class user_editadvanced_form extends moodleform {
         if (!$user or $user->email !== $usernew->email) {
             if (!validate_email($usernew->email)) {
                 $err['email'] = get_string('invalidemail');
-            } else if ($DB->record_exists('user', array('email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id))) {
+            } else if ($DB->record_exists('user', array('email'=>$usernew->email, 'mnethostid'=>$CFG->mnet_localhost_id))) {
                 $err['email'] = get_string('emailexists');
             }
         }
 
-        // Next the customisable profile fields.
+        /// Next the customisable profile fields
         $err += profile_validation($usernew, $files);
 
         if (count($err) == 0){
@@ -226,3 +231,5 @@ class user_editadvanced_form extends moodleform {
         }
     }
 }
+
+

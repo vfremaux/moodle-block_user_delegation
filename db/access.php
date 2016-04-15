@@ -30,51 +30,135 @@
 //
 // For the core capabilities, the variable is $moodle_capabilities.
 
-$block_userdelegation_capabilities = array(
+defined('MOODLE_INTERNAL') || die();
 
-    'block/userdelegation:isbehalfof' => array(
+$capabilities = array(
+
+    /*
+     * marks in user context who is user's behalfer
+     * this may be a good idea to isolate this role and capability in a custom "Supervisor" role.
+     */
+    'block/user_delegation:view' => array(
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        )
+    ),
+
+    /*
+     * marks in user context who is user's behalfer
+     * this may be a good idea to isolate this role and capability in a custom "Supervisor" role.
+     */
+    'block/user_delegation:isbehalfof' => array(
         'captype'      => 'write',
         'contextlevel' => CONTEXT_USER,
-        'legacy' => array(
-            'admin' => CAP_ALLOW,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
+
+    'block/user_delegation:hasasbehalf' => array(
+        'riskbitmask' => RISK_PERSONAL,
+
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_USER,
+        'archetypes' => array(
+            'student' => CAP_ALLOW
+        )
+    ),
+
+    /*
+     *
+     */
+    'block/user_delegation:cancreateusers' => array(
+        'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
+
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
+
+    /*
+     * Marks that current user is owning the course, thus 
+     * able to get some reports on it and have strong delegated administration
+     * only Owned course can be assigned to using the user delegation forms. 
+     */
+    'block/user_delegation:owncourse' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+        )
+    ),
+
+    /*
+     * Marks that current user is owning the course, thus 
+     * able to get some reports on it and have strong delegated administration
+     * only Owned course can be assigned to using the user delegation forms. 
+     */
+    'block/user_delegation:owncoursecat' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSECAT,
+        'archetypes' => array(
+        )
+    ),
+
+    /*
+     *
+     *
+     */
+    'block/user_delegation:canbulkaddusers' => array(
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW
         )
     ),
 
-    'block/userdelegation:cancreateusers' => array(
+    /*
+     * Can add an instance to the course the user has capability on
+     */
+    'block/user_delegation:addinstance' => array(
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'admin' => CAP_ALLOW,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW
         )
     ),
-    
-    'block/userdelegation:canbulkaddusers' => array(
-        'captype'      => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'admin' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW
-        )
-    ) ,   
 
-    'block/userdelegation:canaddto' => array(
+    /*
+     * Can add an instance on any "My" page of the user
+     */
+    'block/user_delegation:myaddinstance' => array(
         'captype'      => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'admin' => CAP_ALLOW,
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW
         )
-    ),    
+    ),
 
-    'block/userdelegation:configure' => array(
+    /*
+     * Can add an instance on any "My" page of the user
+     */
+    'block/user_delegation:configure' => array(
+        'riskbitmask' => RISK_CONFIG,
+
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'admin' => CAP_ALLOW,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW
         )
-    )    
+    )
 );
-?>

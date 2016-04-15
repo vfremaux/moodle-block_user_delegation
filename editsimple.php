@@ -1,0 +1,230 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package     block_user_delegation
+ * @category    blocks
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require('../../config.php');
+require_once($CFG->libdir.'/gdlib.php');
+require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
+require_once($CFG->dirroot.'/user/editlib.php');
+require_once($CFG->dirroot.'/user/profile/lib.php');
+
+$PAGE->https_required();
+
+$id = optional_param('id', -1, PARAM_INT);    // edited user id; -1 if creating new user
+$blockid = required_param('blockid', PARAM_INT);    // the block instance id
+$courseid = optional_param('course', SITEID, PARAM_INT);   // course id (defaults to Site)
+
+$url = new moodle_url('/blocks/user_delegation/editsimple.php', array('blockid' => $blockid, 'course' => $courseid));
+$PAGE->set_url($url);
+
+$PAGE->requires->jquery();
+$PAGE->requires->js('/blocks/user_delegation/js/user_edit.php?id='.$courseid);
+
+if (!$course = $DB->get_record('course', array('id' => $courseid))) {
+    print_error('coursemisconf');
+}
+
+// Security.
+
+require_login();
+$usercontext = context_user::instance($USER->id);
+$PAGE->set_context($usercontext);
+
+$blockcontext = context_block::instance($blockid);   // Course context
+if (!has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
+    // Do in two steps to optimize response time.
+    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
+        redirect(new moodle_url('/my'));
+    }
+}
+
+$PAGE->set_pagelayout('admin');
+$PAGE->set_heading(get_string('pluginname', 'block_user_delegation'));
+$PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
+
+if ($id == -1) {
+    // creating new user.
+    // Capability is given by course ownership
+    $user = new stdClass();
+    $user->id = -1;
+    $user->auth = 'manual';
+    $user->confirmed = 1;
+    $user->deleted = 0;
+} else {
+    // editing existing user
+    $personalcontext = context_user::instance($id);
+
+    // Let be sure we are mentor.
+    require_capability('block/user_delegation:isbehalfof', $personalcontext);
+    if (!$user = $DB->get_record('user', array('id' => $id))) {
+        print_error('errornosuchuser', 'block_user_delegation');
+    }
+}
+
+if ($user->id != $USER->id and is_primary_admin($user->id)) {  // Can't edit primary admin
+    print_error('adminprimarynoedit');
+}
+if (isguestuser($user->id)) { // the real guest user can not be edited
+    print_error('guestnoeditprofileother');
+}
+
+if ($user->deleted) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('userdeleted'));
+    echo $OUTPUT->footer($course);
+    die;
+}
+
+// Load user preferences
+useredit_load_preferences($user);
+
+// Load custom profile fields data
+profile_load_data($user);
+
+// User interests separated by commas
+if (!empty($CFG->usetags)) {
+    require_once($CFG->dirroot.'/tag/lib.php');
+    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
+}
+
+// Create form
+$userform = new user_editsimple_form($url, array('userid' => $user->id));
+
+if ($userform->is_cancelled()) {
+    redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
+}
+
+if ($newuser = $userform->get_data()) {
+
+    if (empty($newuser->auth)) {
+        //user editing self
+        $authplugin = get_auth_plugin($user->auth);
+        unset($newuser->auth); //can not change/remove
+    } else {
+        $authplugin = get_auth_plugin($newuser->auth);
+    }
+
+    $newuser->username     = trim($newuser->username);
+    $newuser->timemodified = time();
+
+    if ($newuser->id == -1) {
+        //TODO check out if it makes sense to create account with this auth plugin and what to do with the password
+        unset($newuser->id);
+        $newuser->mnethostid = $CFG->mnet_localhost_id; // always local user
+        $newuser->confirmed  = 1;
+        $newuser->password = hash_internal_user_password($newuser->newpassword);
+        if (!$newuser->id = $DB->insert_record('user', $newuser)) {
+            print_error('errorcreateuser', 'block_user_delegation');
+        }
+
+        //assign the created user on behalf of the creator.
+        userdelegation::attach_user($USER->id, $newuser->id);
+        $usercreated = true;
+
+    } else {
+
+        if (!$DB->update_record('user', $newuser)) {
+            print_error('errorupdatinguser', 'block_user_delegation');
+        }
+
+        // pass a true $userold here
+        if (!$authplugin->user_update($user, $userform->get_data(false))) {
+            // auth update failed, rollback for moodle
+            $DB->update_record('user', $user);
+            print_error('Failed to update user data on external auth: '.$user->auth.
+                    '. See the server logs for more details.');
+        }
+        //set new password if specified
+        if (!empty($newuser->newpassword)) {
+            if ($authplugin->can_change_password()) {
+                if (!$authplugin->user_update_password($newuser, $newuser->newpassword)){
+                    error('Failed to update password on external auth: ' . $newuser->auth .
+                            '. See the server logs for more details.');
+                }
+            }
+        }
+        $usercreated = false;
+    }
+
+    //update preferences
+    useredit_update_user_preference($newuser);
+
+    // update mail bounces
+    useredit_update_bounces($user, $newuser);
+
+    // update forum track preference
+    useredit_update_trackforums($user, $newuser);
+
+    // save custom profile fields data
+    profile_save_data($newuser);
+
+    // reload from db
+    $newuser = $DB->get_record('user', array('id' => $newuser->id));
+    // trigger events
+
+    if ($usercreated) {
+        events_trigger('user_created', $newuser);
+    } else {
+        events_trigger('user_updated', $newuser);
+    }
+
+    redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
+}
+
+// Display page header.
+
+if ($user->id == -1) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('newuser', 'block_user_delegation'));
+} else {
+    echo $OUTPUT->header();
+    $userfullname = fullname($user, true);
+    echo $OUTPUT->heading($userfullname);
+}
+
+// Finally display THE form.
+
+echo('<div style="font-size:11px;">');
+
+if (empty($user->country) && !empty($CFG->country)) {
+    $user->country = $CFG->country;
+}
+if (empty($user->city) && !empty($CFG->city)) {
+    $user->city = $CFG->city;
+}
+if (empty($user->lang) && !empty($CFG->lang)) {
+    $user->lang = $CFG->lang;
+}
+if (empty($user->timezone) && !empty($CFG->timezone)) {
+    $user->timezone = $CFG->timezone;
+}
+$user->course = $COURSE->id;
+$user->blockid = $blockid;
+$userform->set_data($user);
+$userform->display();
+echo('</div>');
+
+/// add footer
+echo $OUTPUT->footer();

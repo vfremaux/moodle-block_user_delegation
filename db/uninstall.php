@@ -22,30 +22,32 @@ defined('MOODLE_INTERNAL') || die();
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * A library to interact with other parts of Moodle
  */
 
 /**
- * checks if user has some user creation cap somewhere
+ * Standard post uninstall handler
  */
-function user_delegation_has_delegation_somewhere() {
-    global $USER;
+function xmldb_block_user_delegation_uninstall() {
+    global $CFG, $DB;
 
-    // TODO : explore caps for a moodle/local:overridemy positive answer.
-    $hassome = get_user_capability_course('block/user_delegation:cancreateusers', $USER->id, false); 
-    if (!empty($hassome)) {
-        return true;
+    // switch to legacy editing teacher when bloc is removed from Moodle.
+    if ($corole = $DB->get_record('role', array('shortname' => 'courseowner'))) {
+
+        $legacyrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $DB->delete_records('role', array('shortname' => 'courseowner'));
+
+        $sql = "
+            UPDATE
+                {role_assignments}
+            SET
+                roleid = {$legacyrole->id}
+            WHERE
+                roleid = {$corole->id}
+        ";
+
+        $DB->execute($sql);
+        $DB->delete_records('config', array('name' => 'block_user_delegation_co_role'));
+
+        unset($CFG->block_user_delegation_co_role);
     }
-
-    return false;
-}
-
-/**
- * Get the count of users that are on my behalf
- */
-function get_onbehalf_user_count() {
-    global $USER;
-
-    return 0;
 }
