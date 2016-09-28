@@ -124,12 +124,16 @@ class user_editsimple_form extends moodleform {
         $mform->addElement('hidden', 'lang', $CFG->lang);
         $mform->setType('lang', PARAM_TEXT);
 
-        /// Next the customisable profile fields
+        // Next the customisable profile fields
 
         if ($this->_customdata['userid'] == -1) {
             $btnstring = get_string('createuser');
         } else {
             $btnstring = get_string('update');
+        }
+
+        if (!empty($this->_customdata['courses'])) {
+            $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
         }
 
         $this->add_action_buttons(true, $btnstring);

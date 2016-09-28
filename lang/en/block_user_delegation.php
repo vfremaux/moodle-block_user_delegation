@@ -8,6 +8,7 @@ $string['user_delegation:configure'] = 'Can configure';
 $string['user_delegation:isbehalfof'] = 'Is behalf of';
 $string['user_delegation:hasasbehalf'] = 'Has as behalf';
 $string['user_delegation:owncourse'] = 'Own the course and can manage users (independently of course enrols)';
+$string['user_delegation:owncoursecat'] = 'Own the course category and can manage users in all courses within (independently of course enrols)';
 $string['user_delegation:view'] = 'Can view the block';
 
 $string['addnewgroup'] = 'Add new group....';
