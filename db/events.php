@@ -24,11 +24,12 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$handlers = array(
-    'groups_member_added' => array (
-        'handlerfile'      => '/blocks/user_delegation/observers.php',
-        'handlerfunction'  => 'block_user_delegation_groups_member_added',
-        'schedule'         => 'instant',
-        'internal'         => 1,
-    ), 
+$observers = array (
+    array(
+        'eventname'   => '\core\event\groups_member_added',
+        'callback'    => 'block_user_delegation_event_observer::on_group_member_added',
+        'includefile' => '/blocks/user_delegation/observers.php',
+        'internal'    => true,
+        'priority'    => 9999,
+    ),
 );

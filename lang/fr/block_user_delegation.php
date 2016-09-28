@@ -8,6 +8,7 @@ $string['user_delegation:configure'] = 'Peut configuer le bloc';
 $string['user_delegation:isbehalfof'] = 'Est responsable de';
 $string['user_delegation:hasasbehalf'] = 'A comme responsable';
 $string['user_delegation:owncourse'] = 'Est propriétaire du cours et peut y administrer des utilisateurs';
+$string['user_delegation:owncoursecat'] = 'Est propriétaire de la catégorie de cours et peut y administrer des utilisateurs';
 $string['user_delegation:view'] = 'Peut voir le bloc';
 
 $string['addnewgroup'] = 'Ajouter un nouveau groupe....';

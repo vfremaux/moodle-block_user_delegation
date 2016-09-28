@@ -51,8 +51,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     $text = $file->get_content();
 
     // Trim UTF-8 BOM
-    $textlib = new textlib();
-    $text = $textlib->trim_utf8_bom($text);
+    $text = core_text::trim_utf8_bom($text);
 
     // Fix mac/dos newlines
     $text = preg_replace('!\r\n?!',"\n", $text);

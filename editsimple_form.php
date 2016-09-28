@@ -124,7 +124,7 @@ class user_editsimple_form extends moodleform {
         $mform->addElement('hidden', 'lang', $CFG->lang);
         $mform->setType('lang', PARAM_TEXT);
 
-        // Next the customisable profile fields
+        // Next the customisable profile fields.
 
         if ($this->_customdata['userid'] == -1) {
             $btnstring = get_string('createuser');
@@ -208,7 +208,7 @@ class user_editsimple_form extends moodleform {
                 $err['username'] = get_string('usernameexists');
             }
             //check allowed characters
-            if ($usernew->username !== textlib::strtolower($usernew->username)) {
+            if ($usernew->username !== core_text::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
                 if ($usernew->username !== clean_param($usernew->username, PARAM_USERNAME)) {

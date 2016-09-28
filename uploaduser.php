@@ -91,6 +91,7 @@ $straddnewuser = get_string('importuser', 'block_user_delegation');
 $struploaduser = get_string('uploadusers', 'block_user_delegation');
 $strblockname = get_string('blockname', 'block_user_delegation');
 
+$PAGE->set_context($usercontext);
 $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid)));
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');

@@ -229,16 +229,11 @@ class userdelegation {
     static function is_empty_line_or_format(&$text, $latin2utf8 = false) {
         global $CFG;
 
-        static $textlib;
         static $first = true;
-
-        if (!isset($textlib)) {
-            $textlib = new textlib(); // singleton
-        }
 
         $text = preg_replace("/\n?\r?/", '', $text);
 
-        if ($latin2utf8){
+        if ($latin2utf8) {
             $text = utf8_encode($text);
         }
 
