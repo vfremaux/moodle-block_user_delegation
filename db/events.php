@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package     block_user_delegation
  * @category    blocks
@@ -23,13 +21,13 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
-$observers = array (
-    array(
-        'eventname'   => '\core\event\groups_member_added',
-        'callback'    => 'block_user_delegation_event_observer::on_group_member_added',
-        'includefile' => '/blocks/user_delegation/observers.php',
-        'internal'    => true,
-        'priority'    => 9999,
-    ),
+$handlers = array(
+    'groups_member_added' => array (
+        'handlerfile'      => '/blocks/user_delegation/observers.php',
+        'handlerfunction'  => 'block_user_delegation_groups_member_added',
+        'schedule'         => 'instant',
+        'internal'         => 1,
+    ), 
 );
