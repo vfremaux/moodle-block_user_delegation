@@ -31,36 +31,33 @@ require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class
  * This event will be executed by admin/tool/sync users management with group assigns
  * @see (non standard) admin/tool/sync
  */
-class block_user_delegation_event_observer {
+function block_user_delegation_groups_member_added($eventdata) {
+    global $DB;
 
-    function on_group_member_added($eventdata) {
-        global $DB;
+    $userid = $eventdata->userid;
+    $group = $DB->get_record('groups', array('id' => $eventdata->groupid));
 
-        $userid = $eventdata->userid;
-        $group = $DB->get_record('groups', array('id' => $eventdata->objectid));
+    $context = context_course::instance($group->courseid);
 
-        $context = context_course::instance($group->courseid);
+    $members = groups_get_members($eventdata->groupid, 'u.id, u.username');
 
-        $members = groups_get_members($eventdata->objectid, 'u.id, u.username');
-
-        // Search for behalving potentials (teachers) in the entered group.
-        if (has_capability('block/user_delegation:hasasbehalf', $context, $userid)) {
-            if ($members) {
-                foreach ($members as $gm) {
-                    if (has_capability('block/user_delegation:isbehalfof', $context, $gm->id)) {
-                        userdelegation::attach_user($gm->id, $userid);
-                    }
+    // Search for behalving potentials (teachers) in the entered group.
+    if (has_capability('block/user_delegation:hasasbehalf', $context, $userid)) {
+        if ($members) {
+            foreach ($members as $gm) {
+                if (has_capability('block/user_delegation:isbehalfof', $context, $gm->id)) {
+                    userdelegation::attach_user($gm->id, $userid);
                 }
             }
         }
+    }
 
-        // Search for behalved potentials (students) in the entered group.
-        if (has_capability('block/user_delegation:isbehalfof', $context, $userid)) {
-            if ($members) {
-                foreach ($members as $gm) {
-                    if (has_capability('block/user_delegation:hasasbehalf', $context, $gm->id)) {
-                        userdelegation::attach_user($userid, $gm->id);
-                    }
+    // Search for behalved potentials (students) in the entered group.
+    if (has_capability('block/user_delegation:isbehalfof', $context, $userid)) {
+        if ($members) {
+            foreach ($members as $gm) {
+                if (has_capability('block/user_delegation:hasasbehalf', $context, $gm->id)) {
+                    userdelegation::attach_user($userid, $gm->id);
                 }
             }
         }
