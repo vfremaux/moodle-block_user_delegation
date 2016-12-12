@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package     block_user_delegation
  * @category    blocks
@@ -23,6 +21,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard post install handler.
@@ -37,9 +36,13 @@ function xmldb_block_user_delegation_install() {
 
     $syscontext = context_system::instance();
 
+    /*
+     * courseowner role might exist f.e. if local_shop has been installed. We must test this
+     * and complete the role if exists.
+     */
     if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
-            // boostrap courseowner to the same as editingteacher
+            // boostrap courseowner to the same as editingteacher.
 
             $editingteacher = $DB->get_record('role', array('shortname' => 'editingteacher'));
 
@@ -49,8 +52,6 @@ function xmldb_block_user_delegation_install() {
             assign_capability('block/user_delegation:isbehalfof', CAP_ALLOW, $roleid, $syscontext->id, true);
             assign_capability('block/user_delegation:view', CAP_ALLOW, $roleid, $syscontext->id, true);
 
-            // add role assign allowance to owner 
-            // We only allow and override on standard roles.
             $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
             $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
             $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'editingteacher'));
@@ -69,6 +70,34 @@ function xmldb_block_user_delegation_install() {
             }
 
             set_config('block_user_delegation_co_role', $shortname);
+        }
+    } else {
+        // Courseowner role exists already, just add capabilities to it.
+
+        assign_capability('block/user_delegation:cancreateusers', CAP_ALLOW, $role->id, $syscontext->id, true);
+        assign_capability('block/user_delegation:canbulkaddusers', CAP_ALLOW, $role->id, $syscontext->id, true);
+        assign_capability('block/user_delegation:isbehalfof', CAP_ALLOW, $role->id, $syscontext->id, true);
+        assign_capability('block/user_delegation:view', CAP_ALLOW, $role->id, $syscontext->id, true);
+
+        /*
+         * Add role assign allowance to owner
+         * We only allow and override on standard roles.
+         */
+        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
+        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
+        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'editingteacher'));
+        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+
+        foreach ($assigntargetrole as $t) {
+            allow_assign($role->id, $t);
+        }
+
+        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
+        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
+        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+
+        foreach ($overridetargetrole as $t) {
+            allow_override($role->id, $t);
         }
     }
 }

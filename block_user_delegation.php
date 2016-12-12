@@ -70,10 +70,10 @@ class block_user_delegation extends block_base {
             }
             $canbulkimport = has_capability('block/user_delegation:canbulkaddusers', $blockcontext);
         } else {
-            if (!block_user_delegation::has_capability_somewhere('block/user_delegation:view')) {
+            if (!block_user_delegation::has_capability_somewhere('block/user_delegation:view', true, true, false, CONTEXT_COURSE.','.CONTEXT_COURSECAT)) {
                 return $this->content;
             }
-            $canbulkimport = block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers');
+            $canbulkimport = block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers', true, true, false, CONTEXT_COURSE.','.CONTEXT_COURSECAT);
         }
 
         $importusersstr = get_string('importusers', 'block_user_delegation');
@@ -120,10 +120,38 @@ class block_user_delegation extends block_base {
     /**
      * checks if a user has a some named capability effective somewhere in a course.
      */
-    static function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false) {
-        global $USER;
+    static function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
+        global $USER, $DB;
+    
+        $contextclause = '';
+    
+        if ($contextlevels) {
+            list($sql, $params) = $DB->get_in_or_equal(explode(',', $contextlevels), SQL_PARAMS_NAMED);
+            $contextclause = "
+               AND ctx.contextlevel $sql
+            ";
+        }
+        $params['capability'] = $capability;
+        $params['userid'] = $USER->id;
 
-        $hassome = get_user_capability_course($capability, $USER->id, false);
+        // this is a a quick rough query that may not handle all role override possibility
+
+        $sql = "
+            SELECT
+                COUNT(DISTINCT ra.id)
+            FROM
+                {role_capabilities} rc,
+                {role_assignments} ra,
+                {context} ctx
+            WHERE
+                rc.roleid = ra.roleid AND
+                ra.contextid = ctx.id AND
+                rc.capability = :capability
+                $contextclause
+                AND ra.userid = :userid AND
+                rc.permission = 1
+        ";
+        $hassome = $DB->get_records_sql($sql, $params);
         if ($excludesite && !empty($hassome) && array_key_exists(SITEID, $hassome)) {
             unset($hassome[SITEID]);
         }

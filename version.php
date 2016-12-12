@@ -15,18 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Version details.
  *
- * @package    block_user_delegation
- * @category   blocks
- * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     block_user_delegation
+ * @category    blocks
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016031800;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2012120301;        // Requires this Moodle version (2.4)
-$plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics)
+$plugin->version   = 2016031800;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->requires  = 2014050800;        // Requires this Moodle version.
+$plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_RC;
-$plugin->release = "2.7 (Build 2016031800)";
+$plugin->release = "2.7.0 (Build 2016031800)";
+
+// Non moodle attributes.
+$plugin->codeincrement = '2.7.0000';

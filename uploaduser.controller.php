@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package    block_user_delegation
  * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
 
-// Fix the weird POST bounce form field loss when ajax changing a form
+// Fix the weird POST bounce form field loss when ajax changing a form.
 $data->grouptoassign = $_REQUEST['grouptoassign'];
 
 $fs = get_file_storage();
@@ -40,9 +40,11 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
     $filename = $file->get_filename();
 
-    // Large files are likely to take their time and memory. Let PHP know
-    // that we'll take longer, and that the process should be recycled soon
-    // to free up memory.
+    /*
+     * Large files are likely to take their time and memory. Let PHP know
+     * that we'll take longer, and that the process should be recycled soon
+     * to free up memory.
+     */
     @set_time_limit(0);
     @raise_memory_limit('128M');
 
@@ -50,11 +52,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
     $text = $file->get_content();
 
-    // Trim UTF-8 BOM
-    $textlib = new textlib();
-    $text = $textlib->trim_utf8_bom($text);
+    // Trim UTF-8 BOM.
+    $text = textlib::trim_utf8_bom($text);
 
-    // Fix mac/dos newlines
+    // Fix mac/dos newlines.
     $text = preg_replace('!\r\n?!',"\n", $text);
 
     $lines = explode("\n", $text);
@@ -64,7 +65,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         print_error('emptyfile', 'block_user_delegation');
     }
 
-    // make arrays of valid fields for error checking
+    // Make arrays of valid fields for error checking.
     $requiredFields = array(
         'username' => 1,
         'password' => !$data->createpassword,
@@ -79,7 +80,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'department' => 1
     );
 
-    // Optional fields 
+    // Optional fields.
     $optionalFields = array(
         'mnethostid' => 1,
         'institution' => 1,
@@ -113,7 +114,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'oldusername' => 1
     );
 
-    // Default values for optional fields (only for  NOT null fields without DEFAULT in db schema)
+    // Default values for optional fields (only for  NOT null fields without DEFAULT in db schema).
     $optionalDefaults = array(
         'idnumber' => '',
         'icq' => '',
@@ -139,7 +140,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'mnethostid' => $CFG->mnet_localhost_id
     );
 
-    // String fields length
+    // String fields length.
     $field_length = array ('username' => 100,
                         'password' => 32,
                         'firstname' => 100,
@@ -164,13 +165,13 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         'description' => 255,
                         'oldusername' => 100);
 
-    // --- get header (field names) ---
+    // Get header (field names).
     $l = array_shift($lines);
     $header = explode($csvseparator, $l);
 
-    // check for valid field names
+    // Check for valid field names.
     foreach ($header as $i => $h) {
-        $h = trim($h); $header[$i] = $h; // remove whitespace
+        $h = trim($h); $header[$i] = $h; // Remove whitespace.
 
         if (!(array_key_exists($h, $requiredFields)) && !(array_key_exists($h, $optionalFields))) {
             echo $OUTPUT->notification(get_string('invalidfieldname_areyousure', 'block_user_delegation', $h));
@@ -184,16 +185,16 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
     $hcount = count($header);
 
-    // check for required fields
+    // Check for required fields.
     foreach ($requiredFields as $key => $value) {
         if ($value) {
             // Required field missing, as still marked for requirement.
             print_error('fieldrequired', 'error', '', $key);
         }
     }
-    $linenum = 1; // since header is line 0
+    $linenum = 1; // Since header is line 0.
 
-    // Prepare counts
+    // Prepare counts.
     $usersnew     = 0;
     $usersupdated = 0;
     $userserrors  = 0;
@@ -234,7 +235,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             }
             $record = array_combine($header, $line);
 
-            // Add fields to object $user
+            // Add fields to object $user.
             foreach ($record as $name => $value) {
 
                 // Trim fields.
@@ -250,7 +251,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 }
 
                 // TODO add other fields validation.
-                // check for required values
+                // Check for required values.
                 if (@$requiredFields[$name] && !$value) {
                     $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', array('sesskey' => sesskey(), 'id' => $blockid, 'ocurse' => $courseid));
                     $a = new StdClass();
@@ -292,7 +293,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             if ($user->username === 'changeme') {
                 $log .= useradmin_uploaduser_notify_error( $linenum, get_string('invaliduserchangeme', 'admin'), null, $user->username, true);
                 $userserrors++;
-                continue; // Skip line
+                continue; // Skip line.
             }
 
             // If a real mail has been specified, check it is a valid address (if not, skip line).
@@ -302,20 +303,20 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $log .= useradmin_uploaduser_notify_error($linenum, get_string('invalidemail').": $user->email", null, $user->username, true);
                     $invalidmails++;
                     $userserrors++;
-                    continue;  // Skip line
+                    continue;  // Skip line.
                 } elseif ($otheruser = $DB->get_record('user', array('email' => $user->email))) {
                     // Check duplicate mail.
                     if ($otheruser && $otheruser->username <> $user->username) {
                         $log .= useradmin_uploaduser_notify_error($linenum, get_string('emailexists').": $user->email", null, $user->username, true);
                         $duplicatemails++;
                         $userserrors++;
-                        continue; // Skip line
+                        continue; // Skip line.
                     }
                 }
             }
 
             // If mnethost ist not localhost, check if mnethost exist.
-            // This should NOT happen in user delegation as this field is not given in documentation
+            // This should NOT happen in user delegation as this field is not given in documentation.
 
             if ($user->mnethostid != $CFG->mnet_localhost_id && !$DB->record_exists('mnet_host', array('id' => $user->mnethostid))) {
                 $log .= useradmin_uploaduser_notify_error($linenum, get_string('mnethostidnotexists', 'block_user_delegation', $user->mnethostid), null, $user->username, true);
@@ -352,7 +353,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $userserrors++;
                     // Do not skip line, as enrolments and groups should be processed.
                 }
-            } else { // new user
+            } else {
+                // New user.
                 // Username does not exists, so create a new user.
                 try {
                     $user->id = $DB->insert_record('user', $user);
@@ -410,7 +412,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         $log .= useradmin_uploaduser_notify_success($linenum, get_string('groupcreated', 'block_user_delegation', $newgroup->name), $user->id, $user->username);
                         $newgroup->id = $DB->insert_record('groups', $newgroup);
 
-                        // Invalidate the grouping cache for the course
+                        // Invalidate the grouping cache for the course.
                         cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($course->id));
 
                         // Trigger group event.
@@ -423,7 +425,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         $event->trigger();
                         $coursegroup = $newgroup;
                     }
-                } elseif (!empty($data->grouptoassign)) {
+                } else if (!empty($data->grouptoassign)) {
                     $coursegroup = $DB->get_record('groups', array('id' => $data->grouptoassign));
                 }
     

@@ -22,10 +22,12 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/// Bulk user registration script from a comma separated file
-/// Returns list of users with their user ids
-/// Based on admin/userupload.php.
-/// Modified by Lorenzo Nicora and included in useradmin block
+/*
+ * Bulk user registration script from a comma separated file
+ * Returns list of users with their user ids
+ * Based on admin/userupload.php.
+ * Modified by Lorenzo Nicora and included in useradmin block
+ */
 
 require('../../config.php');
 require_once($CFG->libdir.'/uploadlib.php');
@@ -55,7 +57,7 @@ require_login();
 $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
-$blockcontext = context_block::instance($blockid);   // Course context
+$blockcontext = context_block::instance($blockid); // Course context.
 if (!has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
     // Do in two steps to optimize response time.
     if (!block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
@@ -87,10 +89,11 @@ $strusersupdated = get_string('usersupdated', 'block_user_delegation');
 $struploadusers = get_string('uploadusers', 'block_user_delegation');
 $straddnewuser = get_string('importuser', 'block_user_delegation');
 
-// Print the header
+// Print the header.
 $struploaduser = get_string('uploadusers', 'block_user_delegation');
 $strblockname = get_string('blockname', 'block_user_delegation');
 
+$PAGE->set_context($usercontext);
 $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid)));
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
@@ -114,7 +117,7 @@ if($data = $mform->get_data()) {
     include($CFG->dirroot.'/blocks/user_delegation/uploaduser.controller.php');
 }
 
-/// Print the form
+// Print the form.
 echo $OUTPUT->header();
 
 echo $OUTPUT->heading_with_help($struploaduser, 'uploadusers', 'block_user_delegation');
@@ -134,7 +137,6 @@ if ($course->id > SITEID) {
     $formdata->nomail = $defaultnomail;
 }
 
-// echo $OUTPUT->box(get_string('explain', 'block_user_delegation', $csvparams), 'center');
 $mform->set_data($formdata);
 $mform->display();
 

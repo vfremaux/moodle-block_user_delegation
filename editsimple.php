@@ -28,6 +28,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
+require_once($CFG->dirroot.'/user/lib.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
 
 $PAGE->https_required();
@@ -109,8 +110,21 @@ if (!empty($CFG->usetags)) {
     $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
 }
 
+$ownedcourses = enrol_get_users_courses($USER->id);
+$courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
+if ($ownedcourses) {
+    foreach ($ownedcourses as $c) {
+        $coursecontext = context_course::instance($c->id);
+        if (!has_capability('block/user_delegation:owncourse', $coursecontext) && !has_capability('moodle/role:assign', $coursecontext)) {
+            continue;
+        }
+        $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
+          $courses_arr[$course->id] = $course->fullname ;
+    }
+}
+
 // Create form
-$userform = new user_editsimple_form($url, array('userid' => $user->id));
+$userform = new user_editsimple_form($url, array('userid' => $user->id, 'courses' => $courses_arr));
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
@@ -135,7 +149,7 @@ if ($newuser = $userform->get_data()) {
         $newuser->mnethostid = $CFG->mnet_localhost_id; // always local user
         $newuser->confirmed  = 1;
         $newuser->password = hash_internal_user_password($newuser->newpassword);
-        if (!$newuser->id = $DB->insert_record('user', $newuser)) {
+        if (!$newuser->id = user_create_user($newuser, false, false)) {
             print_error('errorcreateuser', 'block_user_delegation');
         }
 
@@ -145,7 +159,7 @@ if ($newuser = $userform->get_data()) {
 
     } else {
 
-        if (!$DB->update_record('user', $newuser)) {
+        if (!user_update_user($newuser, false, false)) {
             print_error('errorupdatinguser', 'block_user_delegation');
         }
 
@@ -160,7 +174,7 @@ if ($newuser = $userform->get_data()) {
         if (!empty($newuser->newpassword)) {
             if ($authplugin->can_change_password()) {
                 if (!$authplugin->user_update_password($newuser, $newuser->newpassword)){
-                    error('Failed to update password on external auth: ' . $newuser->auth .
+                    print_error('Failed to update password on external auth: ' . $newuser->auth .
                             '. See the server logs for more details.');
                 }
             }
@@ -180,15 +194,25 @@ if ($newuser = $userform->get_data()) {
     // save custom profile fields data
     profile_save_data($newuser);
 
+    if (!empty($newuser->coursetoassign)) {
+        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $coursetoassign = $DB->get_record('course', array('id' => $newuser->coursetoassign));
+        $coursecontext = context_course::instance($coursetoassign->id);
+        if (has_capability('moodle/role:assign', $coursecontext)) {
+            if ($coursetoassign) {
+                // TODO : Rewrite assignation.
+                if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
+                    $enrol = reset($enrols);
+                    $enrolplugin = enrol_get_plugin('manual');
+                    $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
+                }
+            }
+        }
+    }
+
     // reload from db
     $newuser = $DB->get_record('user', array('id' => $newuser->id));
     // trigger events
-
-    if ($usercreated) {
-        events_trigger('user_created', $newuser);
-    } else {
-        events_trigger('user_updated', $newuser);
-    }
 
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
 }

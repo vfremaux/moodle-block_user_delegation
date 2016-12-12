@@ -448,10 +448,10 @@ if (!empty($table)) {
     echo '</div>';
     echo $OUTPUT->paging_bar($usercount, $page, $perpage, $pagingurl);
     if (!empty($config->useadvanced)) {
-        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', array('course' => $courseid, 'id' => -1));
+        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', array('course' => $courseid, 'blockid' => $blockid, 'id' => -1));
         echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
     } else {
-        $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', array('course' => $courseid, 'id' => -1));
+        $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', array('course' => $courseid, 'blockid' => $blockid, 'id' => -1));
         echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
     }
 }

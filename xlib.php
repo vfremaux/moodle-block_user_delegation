@@ -49,3 +49,12 @@ function get_onbehalf_user_count() {
 
     return 0;
 }
+
+function user_delegation_is_owner($userid, $ownerid = 0) {
+    global $USER;
+
+    if (!$ownerid) $ownerid = $USER->id;
+
+    $usercontext = context_user::instance($userid);
+    return has_capability('block/user_delegation:hasasbehalf', $usercontext, $ownerid);
+}
