@@ -37,7 +37,7 @@ class userdelegation {
      * @return mixed  array of user object 
      */
     public static function get_delegated_users($power_uid, $sort='lastaccess', $dir='ASC', $page = 0, $recordsperpage = 0, $search='', $firstinitial='', $lastinitial='', $extraselect = array()) { 
-        global $CFG, $DB;
+        global $DB;
 
         $fullname = " CONCAT(firstname, '', lastname) ";
         $select = "deleted <> '1'";
@@ -100,12 +100,13 @@ class userdelegation {
     }
 
     /**
-    *
-    */
+     *
+     */
     public static function check_user_exist($email, $firstname, $lastname){ 
-        global $CFG, $DB;
+        global $DB;
 
-        $result = $DB->get_record('user', array('email' => $email, 'firstname' => $firstname, 'lastname' => $lastname)); 
+        $params = array('email' => $email, 'firstname' => $firstname, 'lastname' => $lastname);
+        $result = $DB->get_record('user', $params); 
         return $result;
     }
 
@@ -129,7 +130,8 @@ class userdelegation {
         $studentroleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
 
         if (!$supervisorroleid) {
-            print_error('errormisconfig', 'block_user_delegation', $config->corole, new moodle_url('/course/view.php', array('id' => $COURSE->id)));
+            $returnurl = new moodle_url('/course/view.php', array('id' => $COURSE->id));
+            print_error('errormisconfig', 'block_user_delegation', $config->corole, $returnurl);
         }
 
         $result = role_assign($supervisorroleid, $power_uid, $fellowcontext->id);
@@ -143,10 +145,9 @@ class userdelegation {
      * TODO : Study how to generalise using capability tests
      *  $behalvingrole = get_roles_with_capability('block/user_delegation:hasasbehalf', CAP_ALLOW);
      *  $behalvedrole = get_roles_with_capability('block/user_delegation:isbehalfof', CAP_ALLOW);
-     *
      */
     public static function detach_user($power_uid, $fellow_uid){
-        global $CFG, $DB;
+        global $DB;
 
         $config = get_config('block_user_delegation');
 
@@ -168,6 +169,7 @@ class userdelegation {
      */
     public static function get_owned_courses() {
         global $USER;
+
         if ($courses = get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', $USER->access, false)){
             return $courses;
         }
@@ -227,18 +229,12 @@ class userdelegation {
      * Ensures compatbility to UTF-8 BOM or unBOM formats
      */
     static function is_empty_line_or_format(&$text, $latin2utf8 = false) {
-        global $CFG;
 
-        static $textlib;
         static $first = true;
-
-        if (!isset($textlib)) {
-            $textlib = new textlib(); // singleton
-        }
 
         $text = preg_replace("/\n?\r?/", '', $text);
 
-        if ($latin2utf8){
+        if ($latin2utf8) {
             $text = utf8_encode($text);
         }
 
@@ -252,6 +248,7 @@ class userdelegation {
      * @return true when at least one pattern matchs.
      */
     static function pattern_match($str, $patterns) {
+
         if (!empty($patterns)) {
             foreach ($patterns as $p) {
                 if (preg_match('/'.str_replace('/', '\\/', $p).'/', $str)) {
@@ -268,6 +265,7 @@ class userdelegation {
      * @param bool $use_include_path
      */
     static function my_file_get_contents($filename, $use_include_path = 0) {
+
         $data = '';
         $file = @fopen($filename, 'rb', $use_include_path);
         if ($file) {
@@ -288,7 +286,8 @@ class userdelegation {
      */
     static function pre_process_custom_profile_data($data) {
         global $CFG, $DB;
-        // find custom profile fields and check if data needs to converted.
+
+        // Find custom profile fields and check if data needs to converted.
         foreach ($data as $key => $value) {
             if (preg_match('/^profile_field_/', $key)) {
                 $shortname = str_replace('profile_field_', '', $key);

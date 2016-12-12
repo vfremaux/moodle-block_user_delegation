@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['user_delegation:addinstance'] = 'Peut ajouter une instance';
 $string['user_delegation:myaddinstance'] = 'Peut ajouter une instance aux pages personnalisées';
@@ -8,6 +22,7 @@ $string['user_delegation:configure'] = 'Peut configuer le bloc';
 $string['user_delegation:isbehalfof'] = 'Est responsable de';
 $string['user_delegation:hasasbehalf'] = 'A comme responsable';
 $string['user_delegation:owncourse'] = 'Est propriétaire du cours et peut y administrer des utilisateurs';
+$string['user_delegation:owncoursecat'] = 'Est propriétaire de la catégorie de cours et peut y administrer des utilisateurs';
 $string['user_delegation:view'] = 'Peut voir le bloc';
 
 $string['addnewgroup'] = 'Ajouter un nouveau groupe....';
