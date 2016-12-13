@@ -119,7 +119,7 @@ if ($confirmuser and confirm_sesskey()) {
         echo $OUTPUT->notification(get_string('usernotconfirmed', '', fullname($user, true)));
     }
 
-} elseif ($delete and confirm_sesskey()) {
+} else if ($delete and confirm_sesskey()) {
     // Delete a selected user, after confirmation
 
     if (!$user = $DB->get_record('user', array('id' => $delete))) {
@@ -136,7 +136,8 @@ if ($confirmuser and confirm_sesskey()) {
 
         $optionsyes = array('id' => $blockid, 'course' => $courseid, 'delete' => $delete, 'confirm' => md5($delete), 'sesskey' => sesskey());
         $formcontinue = $OUTPUT->single_button(new moodle_url('/blocks/user_delegation/myusers.php', $optionsyes), get_string('yes'), 'post');
-        $formcancel = $OUTPUT->single_button(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid)), get_string('no'), 'get');
+        $params = array('id' => $blockid, 'course' => $courseid);
+        $formcancel = $OUTPUT->single_button(new moodle_url('/blocks/user_delegation/myusers.php', $params), get_string('no'), 'get');
 
         echo '<div class="user-delegation-delete-form">';
         echo $formcontinue;
@@ -145,7 +146,7 @@ if ($confirmuser and confirm_sesskey()) {
 
         echo $OUTPUT->footer();
         die;
-    } elseif (data_submitted() && !$user->deleted) {
+    } else if (data_submitted() && !$user->deleted) {
         userdelegation::detach_user($USER->id, $user->id);
 
         // unenroll from all my owned courses
@@ -154,7 +155,7 @@ if ($confirmuser and confirm_sesskey()) {
                 $c_context = context_course::instance($c->id);
                 $userroles = get_user_roles($c_context, $user->id, false);
                 foreach ($userroles as $r) {
-                    role_unassign($r->id, $user->id, 0, $c_context->id);
+                    role_unassign($r->id, $user->id, $c_context->id);
                 }
             }
         }
@@ -168,7 +169,7 @@ if ($confirmuser and confirm_sesskey()) {
             }
         }
     }
-} elseif ($acl and confirm_sesskey()) {
+} else if ($acl and confirm_sesskey()) {
 
     if (!has_capability('moodle/user:delete', $sitecontext)) {
         print_error('You are not permitted to modify the MNET access control list.');
@@ -205,11 +206,11 @@ if ($confirmuser and confirm_sesskey()) {
     }
     $mnethosts = $DB->get_records('mnet_host', null, 'id', 'id, wwwroot, name');
     echo $OUTPUT->notification("MNET access control list updated: username '$user->username' from host '"
-        . $mnethosts[$user->mnethostid]->name
-        . "' access now set to '$accessctrl'.");
+        .$mnethosts[$user->mnethostid]->name
+        ."' access now set to '$accessctrl'.");
 }
 
-// create the user filter form
+// Create the user filter form.
 
 $fieldnames = array('realname'=>0, 'lastname'=>1, 'firstname'=>1, 'email'=>1, 'city'=>1, 'country'=>1,
                     'firstaccess'=>1, 'lastaccess'=>1, 'neveraccessed'=>1,
@@ -217,7 +218,7 @@ $fieldnames = array('realname'=>0, 'lastname'=>1, 'firstname'=>1, 'email'=>1, 'c
 $filterparams = array('id' => $blockid, 'course' => $courseid, 'sort' => $sort);
 $ufiltering = new user_filtering($fieldnames, $url, $filterparams);
 
-// Carry on with the user listing
+// Carry on with the user listing.
 
 $columns = array('firstname', 'lastname', 'email', 'city', 'country', 'lastaccess');
 foreach ($columns as $column) {
@@ -254,7 +255,7 @@ if ($users) {
      $usercount = 0;
 }
 
-// Not optimized, makes whole query again
+// Not optimized, makes whole query again.
 
 if ($allusers = userdelegation::get_delegated_users($USER->id, $sort, $dir, 0, 0, '', '', '', $extrasqlparts)){
     $usersearchcount = count($allusers);
@@ -330,7 +331,7 @@ if (!$users) {
     foreach ($users as $user) {
 
         if ($user->username == 'guest') {
-            continue; // do not display dummy new user and guest here
+            continue; // Do not display dummy new user and guest here.
         }
 
         $deletebutton = '';
