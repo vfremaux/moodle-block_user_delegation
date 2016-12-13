@@ -138,7 +138,7 @@ class block_user_delegation extends block_base {
 
         $sql = "
             SELECT
-                COUNT(DISTINCT ra.id)
+                DISTINCT ra.id
             FROM
                 {role_capabilities} rc,
                 {role_assignments} ra,
