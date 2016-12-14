@@ -42,7 +42,7 @@ function xmldb_block_user_delegation_install() {
      */
     if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
-            // boostrap courseowner to the same as editingteacher.
+            // Boostrap courseowner to the same as editingteacher.
 
             $editingteacher = $DB->get_record('role', array('shortname' => 'editingteacher'));
 
