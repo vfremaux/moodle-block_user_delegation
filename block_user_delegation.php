@@ -29,32 +29,28 @@ require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class
 
 class block_user_delegation extends block_base {
 
-    function init() {
+    public function init() {
         $this->title = get_string('user_delegation', 'block_user_delegation');
     }
 
-    function applicable_formats() {
-        return array('all' => true);
+    public function applicable_formats() {
+        return array('all' => true, 'my' => true);
     }
 
-    function specialization() {
-        // $this->title = isset($this->config->title) ? format_string($this->config->title) : format_string(get_string('new_user_delegation', 'block_userdelegation'));
-    }
-
-    function instance_allow_multiple() {
+    public function instance_allow_multiple() {
         return false;
     }
 
-    function instance_allow_config() {
+    public function instance_allow_config() {
         return true;
     }
 
-    function has_config() {
+    public function has_config() {
         return true;
     }
 
-    function get_content() {
-        global $CFG, $USER, $COURSE;
+    public function get_content() {
+        global $USER, $COURSE;
 
         if ($this->content !== null) {
             return $this->content;
@@ -70,10 +66,11 @@ class block_user_delegation extends block_base {
             }
             $canbulkimport = has_capability('block/user_delegation:canbulkaddusers', $blockcontext);
         } else {
-            if (!block_user_delegation::has_capability_somewhere('block/user_delegation:view', true, true, false, CONTEXT_COURSE.','.CONTEXT_COURSECAT)) {
+            $contexts = CONTEXT_COURSE.','.CONTEXT_COURSECAT;
+            if (!block_user_delegation::has_capability_somewhere('block/user_delegation:view', true, true, false, $contexts)) {
                 return $this->content;
             }
-            $canbulkimport = block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers', true, true, false, CONTEXT_COURSE.','.CONTEXT_COURSECAT);
+            $canbulkimport = block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers', true, true, false, $contexts);
         }
 
         $importusersstr = get_string('importusers', 'block_user_delegation');
@@ -81,13 +78,14 @@ class block_user_delegation extends block_base {
         $viewmycoursesstr = get_string('viewmycourses', 'block_user_delegation');
 
         $menu = '<ul>';
-        $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $this->instance->id, 'course' => $COURSE->id));
+        $params = array('id' => $this->instance->id, 'course' => $COURSE->id);
+        $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
         $menu .= ' <li><a href="'.$linkurl.'">'.$viewmyusersstr.'</a></li>';
 
         $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:owncourse', false);
 
         if (!empty($userownedcourses)) {
-            $linkurl = new moodle_url('/blocks/user_delegation/mycourses.php', array('id' => $this->instance->id, 'course' => $COURSE->id));
+            $linkurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
             $menu .= ' <li><a href="'.$linkurl.'">'.$viewmycoursesstr.'</a></li>';
         }
 
@@ -120,7 +118,7 @@ class block_user_delegation extends block_base {
     /**
      * checks if a user has a some named capability effective somewhere in a course.
      */
-    static function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
+    static public function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
         global $USER, $DB;
     
         $contextclause = '';
@@ -134,7 +132,7 @@ class block_user_delegation extends block_base {
         $params['capability'] = $capability;
         $params['userid'] = $USER->id;
 
-        // this is a a quick rough query that may not handle all role override possibility
+        // This is a a quick rough query that may not handle all role override possibility.
 
         $sql = "
             SELECT
