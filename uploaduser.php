@@ -40,7 +40,7 @@ $url = new moodle_url('/blocks/user_delegation/uploaduser.php');
 $PAGE->set_url($url);
 
 $courseid = optional_param('course', SITEID, PARAM_INT);
-$blockid = required_param('id', PARAM_INT); // the block id
+$blockid = required_param('id', PARAM_INT); // The block id.
 
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/uploaduser.php?id='.$courseid);
@@ -94,7 +94,8 @@ $struploaduser = get_string('uploadusers', 'block_user_delegation');
 $strblockname = get_string('blockname', 'block_user_delegation');
 
 $PAGE->set_context($usercontext);
-$PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid)));
+$params = array('id' => $blockid, 'course' => $courseid);
+$PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myusers.php', $params));
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
 
@@ -103,7 +104,8 @@ $courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
         $coursecontext = context_course::instance($c->id);
-        if (!has_capability('block/user_delegation:owncourse', $coursecontext) && !has_capability('moodle/role:assign', $coursecontext)) {
+        if (!has_capability('block/user_delegation:owncourse', $coursecontext) &&
+                !has_capability('moodle/role:assign', $coursecontext)) {
             continue;
         }
         $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
@@ -113,6 +115,10 @@ if ($ownedcourses) {
 
 $mform = new UploadUserForm($url, array('courses' => $courses_arr));
 
+if ($mform->is_cancelled()) {
+    $myusersurl = new moodle_url('/blocks/user_delegation/myusers.php', array('courseid' => $course->id, 'id' => $blockid));
+    redirect($myusersurl);
+}
 if($data = $mform->get_data()) {
     include($CFG->dirroot.'/blocks/user_delegation/uploaduser.controller.php');
 }
