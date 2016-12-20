@@ -82,7 +82,6 @@ if ($id == -1) {
     // Editing existing user.
     $personalcontext = context_user::instance($id); 
 
-    // require_capability('moodle/user:update', $systemcontext);
     require_capability('block/user_delegation:isbehalfof', $personalcontext);
     if (!$user = $DB->get_record('user', array('id' => $id))) {
         error('User ID was incorrect');
@@ -263,20 +262,20 @@ if ($user->id == -1 or ($user->id != $USER->id)) {
     $PAGE->navbar->add($userfullname, new moodle_url('/user/view.php', array('id' => $user->id, 'course' => $course->id)));
     $PAGE->navbar->add($streditmyprofile);
     $PAGE->set_heading($course->fullname);
-    $PAGE->set_focuscontrol("");
+    $PAGE->set_focuscontrol('');
     echo $OUTPUT->header();
-    /// Print tabs at the top
+    // Print tabs at the top.
     $showroles = 1;
     $currenttab = 'editprofile';
     require('tabs.php');
 }
 
-// Finally display THE form
+// Finally display THE form.
 echo('<div style="font-size:11px;">');
 $userform->display();
 echo('</div>');
 
-// and proper footer
+// And proper footer.
 if (!empty($USER->newadminuser)) {
     echo $OUTPUT->footer('none');
 } else {
