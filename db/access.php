@@ -78,8 +78,19 @@ $capabilities = array(
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
             'manager' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW
+        )
+    ),
+
+    /*
+     *
+     */
+    'block/user_delegation:candeleteusers' => array(
+        'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
+
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
         )
     ),
 

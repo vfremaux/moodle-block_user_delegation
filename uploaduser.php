@@ -104,8 +104,7 @@ $courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
         $coursecontext = context_course::instance($c->id);
-        if (!has_capability('block/user_delegation:owncourse', $coursecontext) &&
-                !has_capability('moodle/role:assign', $coursecontext)) {
+        if (!has_capability('block/user_delegation:owncourse', $coursecontext))
             continue;
         }
         $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');

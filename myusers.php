@@ -177,7 +177,7 @@ if ($confirmuser and confirm_sesskey()) {
     }
 } else if ($acl and confirm_sesskey()) {
 
-    if (!has_capability('moodle/user:delete', $sitecontext)) {
+    if (!has_capability('block/user_delegation:candeleteusers', $sitecontext)) {
         print_error('You are not permitted to modify the MNET access control list.');
     }
 
@@ -389,7 +389,7 @@ if (!$users) {
 
             // ACL in delete column.
             $deletebutton = get_string($accessctrl, 'mnet');
-            if (has_capability('moodle/user:delete', $sitecontext)) {
+            if (has_capability('block/user_delegation:candeleteusers', $sitecontext)) {
                 // TODO: this should be under a separate capability.
                 $params = array('id' => $blockid, 'course' => $courseid, 'acl' => $user->id, 'accessctrl' => $changeaccessto, 'sesskey' => $USER->sesskey);
                 $deleteurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
