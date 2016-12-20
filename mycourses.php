@@ -124,7 +124,7 @@ if (!empty($user_courses)) {
 
         echo '<p></p>';
 
-        $course_teachers = get_users_by_capability($coursecontext, 'moodle/couse:grade', 'u.id,firstname,lastname');
+        $course_teachers = get_users_by_capability($coursecontext, 'moodle/course:grade', 'u.id,'.get_all_user_name_fields(true, 'u'));
         $teachersstr = get_string('teachers', 'block_user_delegation');
         echo "<b>$teachersstr <a href='#' class='courseteachers-btn' id='".$c->id."'  >+</a></b>";
         echo '<div class="cteacherscont" id="cteacherscont-'.$c->id.'">';//all users 

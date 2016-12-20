@@ -177,7 +177,7 @@ if ($confirmuser and confirm_sesskey()) {
     }
 } else if ($acl and confirm_sesskey()) {
 
-    if (!has_capability('moodle/user:delete', $sitecontext)) {
+    if (!has_capability('block/user_delegation:candeleteusers', $sitecontext)) {
         print_error('You are not permitted to modify the MNET access control list.');
     }
 
@@ -355,10 +355,14 @@ if (!$users) {
         $isbehalfof = has_capability('block/user_delegation:isbehalfof', $usercontext);
 
         if ($isbehalfof and ($user->id != $mainadmin->id) and !is_mnet_remote_user($user)) {
-            $editurl = new moodle_url('/blocks/user_delegation/editsimple.php', array('course' => $courseid, 'blockid' => $blockid, 'id' => $user->id));
+            $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => $user->id);
+            $editurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
             $editbutton = '<a href="'.$editurl.'">'.$stredit.'</a>';
             if ($user->confirmed == 0) {
-                $params = array('id' => $blockid, 'course' => $courseid, 'confirmuser' => $user->id, 'sesskey' => $USER->sesskey);
+                $params = array('id' => $blockid,
+                                'course' => $courseid,
+                                'confirmuser' => $user->id,
+                                'sesskey' => $USER->sesskey);
                 $confirmurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
                 $confirmbutton = '<a href="'.$confirmurl.'">'.get_string('confirm').'</a>';
             } else {
@@ -389,9 +393,13 @@ if (!$users) {
 
             // ACL in delete column.
             $deletebutton = get_string($accessctrl, 'mnet');
-            if (has_capability('moodle/user:delete', $sitecontext)) {
+            if (has_capability('block/user_delegation:candeleteusers', $sitecontext)) {
                 // TODO: this should be under a separate capability.
-                $params = array('id' => $blockid, 'course' => $courseid, 'acl' => $user->id, 'accessctrl' => $changeaccessto, 'sesskey' => $USER->sesskey);
+                $params = array('id' => $blockid,
+                                'course' => $courseid,
+                                'acl' => $user->id,
+                                'accessctrl' => $changeaccessto,
+                                'sesskey' => $USER->sesskey);
                 $deleteurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
                 $deletebutton .= ' (<a href="'.$deleteurl.'">'
                         . get_string($changeaccessto, 'mnet') . " access</a>)";

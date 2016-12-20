@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 function user_delegation_get_user_courses_bycap($userid, $cap, $accessdata_ignored, $doanything_ignored, $sort = 'c.sortorder ASC', $fields = null, $limit_ignored = 0) {
 
     $courses = enrol_get_users_courses($userid, true, $fields, $sort);
-    foreach ($courses as $id=>$course) {
+    foreach ($courses as $id => $course) {
         $context = context_course::instance($id);
         if (!has_capability($cap, $context, $userid)) {
             unset($courses[$id]);

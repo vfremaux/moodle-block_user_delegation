@@ -115,11 +115,11 @@ $courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
         $coursecontext = context_course::instance($c->id);
-        if (!has_capability('block/user_delegation:owncourse', $coursecontext) && !has_capability('moodle/role:assign', $coursecontext)) {
+        if (!has_capability('block/user_delegation:owncourse', $coursecontext)) {
             continue;
         }
         $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
-          $courses_arr[$course->id] = $course->fullname ;
+        $courses_arr[$course->id] = $course->fullname ;
     }
 }
 
@@ -198,14 +198,12 @@ if ($newuser = $userform->get_data()) {
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         $coursetoassign = $DB->get_record('course', array('id' => $newuser->coursetoassign));
         $coursecontext = context_course::instance($coursetoassign->id);
-        if (has_capability('moodle/role:assign', $coursecontext)) {
-            if ($coursetoassign) {
-                // TODO : Rewrite assignation.
-                if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
-                    $enrol = reset($enrols);
-                    $enrolplugin = enrol_get_plugin('manual');
-                    $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
-                }
+        if ($coursetoassign) {
+            // TODO : Rewrite assignation.
+            if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
+                $enrol = reset($enrols);
+                $enrolplugin = enrol_get_plugin('manual');
+                $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
             }
         }
     }
