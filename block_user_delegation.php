@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
-require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
-
 /**
  * @package block_user_delegation
  * @category  blocks
@@ -26,6 +21,10 @@ require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class
  * @copyright  2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 
 class block_user_delegation extends block_base {
 

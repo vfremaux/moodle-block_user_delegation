@@ -36,13 +36,15 @@ class UploadUserForm extends moodleform {
         $mform->addElement('hidden', 'course');
         $mform->setType('course', PARAM_INT);
 
-        // The block id
+        // The block id.
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
+        $mform->addElement('header', 'head0', get_string('inputfile', 'block_user_delegation'));
+
         $mform->addElement('filepicker', 'userfile');
 
-        $mform->addElement('header', 'head0', get_string('settings'));
+        $mform->addElement('header', 'head1', get_string('settings'));
 
         if (!empty($this->_customdata['courses'])) {
             $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);

@@ -49,6 +49,7 @@ function xmldb_block_user_delegation_install() {
             role_cap_duplicate($editingteacher, $roleid);
             assign_capability('block/user_delegation:cancreateusers', CAP_ALLOW, $roleid, $syscontext->id, true);
             assign_capability('block/user_delegation:canbulkaddusers', CAP_ALLOW, $roleid, $syscontext->id, true);
+            assign_capability('block/user_delegation:candeleteusers', CAP_ALLOW, $roleid, $syscontext->id, true);
             assign_capability('block/user_delegation:isbehalfof', CAP_ALLOW, $roleid, $syscontext->id, true);
             assign_capability('block/user_delegation:view', CAP_ALLOW, $roleid, $syscontext->id, true);
 
@@ -76,6 +77,7 @@ function xmldb_block_user_delegation_install() {
 
         assign_capability('block/user_delegation:cancreateusers', CAP_ALLOW, $role->id, $syscontext->id, true);
         assign_capability('block/user_delegation:canbulkaddusers', CAP_ALLOW, $role->id, $syscontext->id, true);
+        assign_capability('block/user_delegation:candeleteusers', CAP_ALLOW, $role->id, $syscontext->id, true);
         assign_capability('block/user_delegation:isbehalfof', CAP_ALLOW, $role->id, $syscontext->id, true);
         assign_capability('block/user_delegation:view', CAP_ALLOW, $role->id, $syscontext->id, true);
 
