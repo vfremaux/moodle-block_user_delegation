@@ -48,17 +48,32 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 // Security.
 
 $blockcontext = context_block::instance($blockid);   // Course context
-if (!has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
+
+$cancreate = false;
+if (has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
+    $cancreate = true;
+} else {
     // Do in two steps to optimize response time.
-    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
-        redirect(new moodle_url('/my'));
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
+        $cancreate = true;
     }
 }
 
-$canaddbulkusers = true;
-if (!has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
-    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
-        $canaddbulkusers = false;
+$canaddbulk = false;
+if (has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
+    $canaddbulk = true;
+} else {
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
+        $canaddbulk = true;
+    }
+}
+
+$candelete = false;
+if (has_capability('block/user_delegation:candeleteusers', $blockcontext)) {
+    $candelete = true;
+} else {
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:candeleteusers')) {
+        $candelete = true;
     }
 }
 
@@ -80,12 +95,6 @@ $perpage = 10;
 $user_courses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:owncourse', false);
 $coursescount = count($user_courses);
 
-echo $OUTPUT->heading(get_string('mydelegatedcourses', 'block_user_delegation'));
-
-$totalcoursesstr = get_string('totalcourses', 'block_user_delegation');
-echo '<div id="user-delegation-toolbar">'; //toolbar
-echo '<div><b>'.$totalcoursesstr.': </b>'.$coursescount.'</div>';
-
 echo '<div class="userpage-toolbar">';
 echo '<img src="'.$OUTPUT->pix_url('users', 'block_user_delegation').'" /> ';
 $usersurl = new moodle_url('/blocks/user_delegation/myusers.php');
@@ -95,6 +104,12 @@ if ($course->id > SITEID) {
 }
 echo '<a href="'.$usersurl.'">'.get_string('myusers', 'block_user_delegation').'</a>'; 
 echo '</div>';
+
+echo $OUTPUT->heading(get_string('mydelegatedcourses', 'block_user_delegation'));
+
+$totalcoursesstr = get_string('totalcourses', 'block_user_delegation');
+echo '<div id="user-delegation-toolbar">'; //toolbar
+echo '<div><b>'.$totalcoursesstr.': </b>'.$coursescount.'</div>';
 echo '</div>';
 
 $changeenrolmentstr = get_string('changeenrolment', 'block_user_delegation');
@@ -114,8 +129,9 @@ if (!empty($user_courses)) {
         $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', array('course' => $course->id, 'id' => $blockid));
         echo '<div><b><a href="'.$linkurl.'" >'.$changeenrolmentstr.'</a></b></div>';
 
-        if ($canaddbulkusers) {
-            $linkurl = new moodle_url('/blocks/user_delegation/uploaduser.php', array('course' => $course->id, 'coursetoassign' => $c->id, 'id' => $blockid));
+        if ($canaddbulk) {
+            $params = array('course' => $course->id, 'coursetoassign' => $c->id, 'id' => $blockid);
+            $linkurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
             echo '<div><b><img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" /><a href="'.$linkurl.'" >'.$uploadusersstr.'</a></b></div>';
         }
 

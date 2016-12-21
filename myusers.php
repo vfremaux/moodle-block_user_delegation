@@ -34,42 +34,55 @@ require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 $blockid      = required_param('id', PARAM_INT);
 $courseid     = optional_param('course', 1, PARAM_INT);
 $delete       = optional_param('delete', 0, PARAM_INT);
-$confirm      = optional_param('confirm', '', PARAM_ALPHANUM);   //md5 confirmation hash
+$confirm      = optional_param('confirm', '', PARAM_ALPHANUM);   // Md5 confirmation hash.
 $confirmuser  = optional_param('confirmuser', 0, PARAM_INT);
 $sort         = optional_param('sort', 'name', PARAM_ALPHA);
 $dir          = optional_param('dir', 'ASC', PARAM_ALPHA);
 $page         = optional_param('page', 0, PARAM_INT);
-$perpage      = optional_param('perpage', 30, PARAM_INT);        // how many per page
-$ru           = optional_param('ru', '2', PARAM_INT);            // show remote users
-$lu           = optional_param('lu', '2', PARAM_INT);            // show local users
-$acl          = optional_param('acl', '0', PARAM_INT);           // id of user to tweak mnet ACL (requires $access)
+$perpage      = optional_param('perpage', 30, PARAM_INT);        // How many per page.
+$ru           = optional_param('ru', '2', PARAM_INT);            // Show remote users.
+$lu           = optional_param('lu', '2', PARAM_INT);            // Show local users.
+$acl          = optional_param('acl', '0', PARAM_INT);           // ID of user to tweak mnet ACL (requires $access).
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('coursemisconf');
 }
 
-// Security
+// Security.
+
 require_login();
 $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
-$blockcontext = context_block::instance($blockid);   // Course context
-if (!has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
+$blockcontext = context_block::instance($blockid);   // Course context.
+
+$cancreate = false;
+if (has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
+    $cancreate = true;
+} else {
     // Do in two steps to optimize response time.
-    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
-        redirect(new moodle_url('/my'));
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
+        $cancreate = true;
     }
 }
 
-$canaddbulkusers = true;
-if (!has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
-    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
-        $canaddbulkusers = false;
+$canaddbulk = false;
+if (has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
+    $canaddbulk = true;
+} else {
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
+        $canaddbulk = true;
     }
 }
 
-// Security.
-require_login();
+$candelete = false;
+if (has_capability('block/user_delegation:candeleteusers', $blockcontext)) {
+    $candelete = true;
+} else {
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:candeleteusers')) {
+        $candelete = true;
+    }
+}
 
 if (empty($CFG->loginhttps)) {
     $securewwwroot = $CFG->wwwroot;
@@ -91,7 +104,6 @@ $PAGE->set_title($SITE->shortname);
 $PAGE->set_heading($SITE->shortname);
 $PAGE->set_pagelayout('admin');
 
-echo $OUTPUT->header();
 
 // Start page content.
 
@@ -101,11 +113,12 @@ if (!isset($config->corole)) {
     set_config('corole', 'editingteacher', 'block_user_delegation');
 }
 
+echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('myusers', 'block_user_delegation'));
 
-/// Adding a user
+// Adding a user.
 
-if ($confirmuser and confirm_sesskey()) {
+if ($confirmuser and confirm_sesskey() && $cancreate) {
 
     if (!$user = $DB->get_record('user', array('id' => $confirmuser))) {
         print_error('errornouser', 'block_usr_delegation');
@@ -119,13 +132,13 @@ if ($confirmuser and confirm_sesskey()) {
         echo $OUTPUT->notification(get_string('usernotconfirmed', '', fullname($user, true)));
     }
 
-} else if ($delete and confirm_sesskey()) {
-    // Delete a selected user, after confirmation
+} else if ($delete and confirm_sesskey() && $candelete) {
+    // Delete a selected user, after confirmation.
 
     if (!$user = $DB->get_record('user', array('id' => $delete))) {
         print_error('errornouser', 'block_user_delegation');
     }
-    // You'll never be able to delete administrators
+    // You'll never be able to delete administrators.
     if (is_primary_admin($user->id)) {
         print_error('errorprimaryadmindeletion', 'block_user_delegation');
     }
@@ -155,7 +168,7 @@ if ($confirmuser and confirm_sesskey()) {
     } else if (data_submitted() && !$user->deleted) {
         userdelegation::detach_user($USER->id, $user->id);
 
-        // unenroll from all my owned courses
+        // Unenroll from all my owned courses.
         if ($courses = user_delegation_get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', $USER->access, false)) {
             foreach ($courses as $c) {
                 $c_context = context_course::instance($c->id);
@@ -166,7 +179,7 @@ if ($confirmuser and confirm_sesskey()) {
             }
         }
 
-        // if no more owners and need to delete, delete
+        // If no more owners and need to delete, delete.
         if (!userdelegation::has_owners($user->id) && @$config->lastownerdeletes) {
             if (delete_user($user)) {
                 echo $OUTPUT->notification(get_string('deletedactivity', '', fullname($user, true)));
@@ -292,7 +305,7 @@ flush();
 if (!$users) {
     $match = array();
     echo $OUTPUT->notification(get_string('nousersfound'), 'user-delegation-notification');
-    $table = NULL;
+    $table = null;
 } else {
     $countries = get_string_manager()->get_list_of_countries();
 
@@ -306,7 +319,8 @@ if (!$users) {
         }
     }
 
-    if ($sort == 'country') {  // Need to resort by full country name, not code
+    if ($sort == 'country') {
+        // Need to resort by full country name, not code.
         foreach ($users as $user) {
             $susers[$user->id] = $user->country;
         }
@@ -338,11 +352,12 @@ if (!$users) {
     foreach ($users as $user) {
 
         if ($user->username == 'guest') {
-            continue; // Do not display dummy new user and guest here.
+            // Do not display dummy new user and guest here.
+            continue;
         }
 
         $deletebutton = '';
-        if (!userdelegation::has_owners($user->id) || is_siteadmin()) {
+        if ((!userdelegation::has_other_owners($user->id) && $candelete) || is_siteadmin()) {
             $params = array('id' => $blockid, 'course' => $courseid, 'delete' => $user->id, 'sesskey' => $USER->sesskey);
             $deleteurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
             $deletebutton = '<a href="'.$deleteurl.'">'.$strdelete.'</a>';
@@ -393,7 +408,7 @@ if (!$users) {
 
             // ACL in delete column.
             $deletebutton = get_string($accessctrl, 'mnet');
-            if (has_capability('block/user_delegation:candeleteusers', $sitecontext)) {
+            if ($candelete) {
                 // TODO: this should be under a separate capability.
                 $params = array('id' => $blockid,
                                 'course' => $courseid,
@@ -435,17 +450,20 @@ if (!$users) {
 $ufiltering->display_add();
 $ufiltering->display_active();
 
-if (!empty($config->useadvanced)) {
-    $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
-    $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params²);
-    echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
-} else {
-    $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
-    $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
-    echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+if ($cancreate) {
+    if (!empty($config->useadvanced)) {
+        $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
+        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params²);
+        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+    } else {
+        $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
+        $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
+        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+    }
 }
 
 // Print link to my courses.
+
 $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', false);
 echo '<div class="userpage-toolbar">';
 if (!empty($userownedcourses)) {
@@ -457,7 +475,7 @@ if (!empty($userownedcourses)) {
 }
 
 // Print upload users link.
-if ($canaddbulkusers) {
+if ($canaddbulk) {
       echo '<img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" />';
       $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', array('id' => $blockid, 'course' => $courseid));
       echo '<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
@@ -472,14 +490,16 @@ if (!empty($table)) {
     echo '</div>';
     echo $OUTPUT->paging_bar($usercount, $page, $perpage, $pagingurl);
 
-    if (!empty($config->useadvanced)) {
-        $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
-        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params);
-        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
-    } else {
-        $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
-        $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
-        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+    if ($cancreate) {
+        if (!empty($config->useadvanced)) {
+            $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
+            $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params);
+            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+        } else {
+            $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
+            $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
+            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+        }
     }
 }
 
