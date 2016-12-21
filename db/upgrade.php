@@ -15,31 +15,35 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Form for editing HTML block instances.
- *
- * @package   block_user_delegation
+ * @package   block_shop_access
  * @category  blocks
- * @authors   Wafa Adham & Valery Fremaux
- * @copyright Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @author    Valery Fremaux (valery.fremaux@gmail.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Form for editing Random glossary entry block instances.
- *
- * @authors Wafa Adham & Valery Fremaux
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Standard upgrade handler.
+ * @param int $oldversion
  */
-class block_user_delegation_edit_form extends block_edit_form {
+function xmldb_block_user_delegation_upgrade($oldversion = 0) {
+    global $DB;
 
-    protected function specific_definition($mform) {
-        global $DB;
+    $result = true;
 
-        // Fields for editing HTML block title and contents.
-        $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
+    if ($result && $oldversion < 2016122601) {
+        // New version in version.php.
 
-        $mform->addElement('checkbox', 'config_allowenrol', get_string('configallowenrol', 'block_user_delegation'), '', 1);
+        $syscontext = context_system::instance();
+
+        $shortname = 'courseowner';
+        if ($role = $DB->get_record('role', array('shortname' => $shortname))) {
+            assign_capability('block/user_delegation:candeleteusers', CAP_ALLOW, $role->id, $syscontext->id, true);
+        }
+
+        // Use_stats savepoint reached.
+        upgrade_block_savepoint($result, 2016122601, 'user_delegation');
     }
 
+    return $result;
 }
