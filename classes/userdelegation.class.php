@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package     block_user_delegation
  * @category    blocks
@@ -23,6 +21,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * 
@@ -36,8 +35,8 @@ class userdelegation {
      * @param mixed $order  order field
      * @return mixed  array of user object 
      */
-    public static function get_delegated_users($power_uid, $sort='lastaccess', $dir='ASC', $page = 0, $recordsperpage = 0, $search='', $firstinitial='', $lastinitial='', $extraselect = array()) { 
-        global $DB;
+    public static function get_delegated_users($poweruid, $sort = 'lastaccess', $dir = 'ASC', $page = 0, $recordsperpage = 0, $search='', $firstinitial = '', $lastinitial = '', $extraselect = array()) { 
+        global $DB, $USER;
 
         $fullname = " CONCAT(firstname, '', lastname) ";
         $select = "deleted <> '1'";
@@ -81,13 +80,14 @@ class userdelegation {
 
         $sql = "
             SELECT DISTINCT
-                u.*
+                u.*,
+                ctx.id as ctxid
             FROM
                 {user} u,
                 {role_assignments} ra,
                 {context} ctx
             WHERE
-                ra.userid = {$power_uid} AND
+                ra.userid = {$poweruid} AND
                 ra.contextid = ctx.id AND
                 ctx.contextlevel = ".CONTEXT_USER." AND
                 ctx.instanceid = u.id AND
@@ -96,7 +96,15 @@ class userdelegation {
         ";
         $users = $DB->get_records_sql($sql, $params, $page, $recordsperpage);
 
-        return $users;
+        $behalfedusers = array();
+        foreach ($users as $u) {
+            $usercontext = context_user::instance($u->id);
+            if (has_capability('block/user_delegation:isbehalfof', $usercontext, $USER->id, false)) {
+                $behalfedusers[$u->id] = $u;
+            }
+        }
+
+        return $behalfedusers;
     }
 
     /**
@@ -160,7 +168,7 @@ class userdelegation {
         $result = role_unassign($supervisorroleid, $power_uid, $fellowcontext->id);
         $result = $result && role_unassign($studentroleid, $fellow_uid, $supervisorcontext->id);
 
-        return (int)$result; 
+        return (int)$result;
     }
 
     /**
@@ -168,19 +176,36 @@ class userdelegation {
      * @return array of courses or empty array
      */
     public static function get_owned_courses() {
-        global $USER;
+        global $DB, $USER;
 
-        if ($courses = get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', $USER->access, false)){
-            return $courses;
-        }
-        return array(); 
+        $config = get_config('block_user_delegation');
+
+        $sql = "
+            SELECT
+                c.*
+            FROM
+                {course} c,
+                {context} ctx,
+                {role_assignments} ra
+            WHERE
+                c.id = ctx.instanceid AND
+                ctx.contextlevel = ? AND
+                ra.contextid = ctx.id AND
+                ra.roleid = ? AND
+                ra.userid = ?
+        ";
+
+        $role = $DB->get_record('role', array('shortname' => $config->corole));
+        $courses = $DB->get_records_sql($sql, array(CONTEXT_COURSE, $role->id, $USER->id));
+
+        return $courses;
     }
 
     /**
      * checks if an owner is owned by anyone else
      * @return array of owners or false
      */
-    public static function has_owners($userid) {
+    public static function has_other_owners($userid) {
         global $USER;
 
         if ($userid <= 0) {
@@ -188,11 +213,13 @@ class userdelegation {
         }
         $personalcontext = context_user::instance($userid);
 
-        $owners = get_users_by_capability($personalcontext, 'block/user_delegation:isbehalfof', 'u.id,'.get_all_user_name_fields(true, ''), 'lastname,firstname', 0, 0, '', '', true);
+        $fields = 'u.id,'.get_all_user_name_fields(true, 'u');
+        $sort = 'lastname,firstname';
+        $owners = get_users_by_capability($personalcontext, 'block/user_delegation:isbehalfof', $fields, $sort, 0, 0, '', '', true);
 
         if ($owners) {
             foreach ($owners as $o) {
-                if ($o != $USER->id) {
+                if ($o->id != $USER->id) {
                     return true;
                 }
             }
