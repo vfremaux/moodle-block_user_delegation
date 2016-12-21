@@ -68,7 +68,7 @@ class user_editsimple_form extends moodleform {
         $mform->addRule('username', $strrequired, 'required', null, 'client');
         $mform->setType('username', PARAM_RAW);
 
-        if (!userdelegation::has_owners($this->_customdata['userid'])) {
+        if (!userdelegation::has_other_owners($this->_customdata['userid'])) {
             $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
             $mform->addHelpButton('suspended', 'suspended', 'auth');
         }

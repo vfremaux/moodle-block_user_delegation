@@ -172,7 +172,7 @@ function useradmin_has_capabilities_to_upload() {
     global $COURSE;
 
     $coursecontext = context_course::instance($COURSE->id);
-    if ( has_capability('moodle/site:uploadusers', $coursecontext)
+    if (has_capability('moodle/site:uploadusers', $coursecontext)
     &&  has_capability('moodle/user:update', $coursecontext)
     &&  has_capability('moodle/user:create', $coursecontext)
     &&  has_capability('moodle/role:assign', $coursecontext)) {

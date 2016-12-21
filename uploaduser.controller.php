@@ -332,7 +332,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 if ($data->updateaccounts) {
 
                     // Check deletion or suspension capability.
-                    if (userdelegation::has_owners($user->id)) {
+                    if (userdelegation::has_other_owners($user->id)) {
                         // There is NO possibility to delete or suspend a user i zam not the only owner.
                         $user->deleted = 0;
                         $user->suspended = 0;
@@ -388,15 +388,13 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 $studentrole = $DB->get_record('role', array('shortname' => 'student'));
                 $course = $DB->get_record('course', array('id' => $data->coursetoassign));
                 $coursecontext = context_course::instance($course->id);
-                if (has_capability('moodle/role:assign', $coursecontext)) {
-                    if ($course) {
-                        // TODO : Rewrite assignation.
-                        if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
-                            $enrol = reset($enrols);
-                            $enrolplugin = enrol_get_plugin('manual');
-                            $enrolplugin->enrol_user($enrol, $user->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
-                            $log .= useradmin_uploaduser_notify_success($linenum, get_string('userenrolled', 'block_user_delegation', $course->shortname), $user->id, $user->username);
-                        }
+                if ($course) {
+                    // TODO : Rewrite assignation.
+                    if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
+                        $enrol = reset($enrols);
+                        $enrolplugin = enrol_get_plugin('manual');
+                        $enrolplugin->enrol_user($enrol, $user->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
+                        $log .= useradmin_uploaduser_notify_success($linenum, get_string('userenrolled', 'block_user_delegation', $course->shortname), $user->id, $user->username);
                     }
                 }
 
