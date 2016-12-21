@@ -33,9 +33,9 @@ require_once($CFG->dirroot.'/user/profile/lib.php');
 
 $PAGE->https_required();
 
-$id = optional_param('id', -1, PARAM_INT);    // edited user id; -1 if creating new user
-$blockid = required_param('blockid', PARAM_INT);    // the block instance id
-$courseid = optional_param('course', SITEID, PARAM_INT);   // course id (defaults to Site)
+$id = optional_param('id', -1, PARAM_INT);    // Edited user id; -1 if creating new user.
+$blockid = required_param('blockid', PARAM_INT);    // The block instance id.
+$courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
 
 $url = new moodle_url('/blocks/user_delegation/editsimple.php', array('blockid' => $blockid, 'course' => $courseid));
 $PAGE->set_url($url);
@@ -53,7 +53,7 @@ require_login();
 $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
-$blockcontext = context_block::instance($blockid);   // Course context
+$blockcontext = context_block::instance($blockid);   // Course context.
 if (!has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
     // Do in two steps to optimize response time.
     if (!block_user_delegation::has_capability_somewhere('block/user_delegation:cancreateusers')) {
@@ -66,15 +66,15 @@ $PAGE->set_heading(get_string('pluginname', 'block_user_delegation'));
 $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
-    // creating new user.
-    // Capability is given by course ownership
+    // Creating new user.
+    // Capability is given by course ownership.
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';
     $user->confirmed = 1;
     $user->deleted = 0;
 } else {
-    // editing existing user
+    // Editing existing user.
     $personalcontext = context_user::instance($id);
 
     // Let be sure we are mentor.
@@ -87,7 +87,8 @@ if ($id == -1) {
 if ($user->id != $USER->id and is_primary_admin($user->id)) {  // Can't edit primary admin
     print_error('adminprimarynoedit');
 }
-if (isguestuser($user->id)) { // the real guest user can not be edited
+if (isguestuser($user->id)) {
+    // The real guest user can not be edited.
     print_error('guestnoeditprofileother');
 }
 
@@ -98,13 +99,13 @@ if ($user->deleted) {
     die;
 }
 
-// Load user preferences
+// Load user preferences.
 useredit_load_preferences($user);
 
-// Load custom profile fields data
+// Load custom profile fields data.
 profile_load_data($user);
 
-// User interests separated by commas
+// User interests separated by commas.
 if (!empty($CFG->usetags)) {
     require_once($CFG->dirroot.'/tag/lib.php');
     $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
@@ -123,7 +124,7 @@ if ($ownedcourses) {
     }
 }
 
-// Create form
+// Create form.
 $userform = new user_editsimple_form($url, array('userid' => $user->id, 'courses' => $courses_arr));
 
 if ($userform->is_cancelled()) {
@@ -133,9 +134,10 @@ if ($userform->is_cancelled()) {
 if ($newuser = $userform->get_data()) {
 
     if (empty($newuser->auth)) {
-        //user editing self
+        // User editing self.
         $authplugin = get_auth_plugin($user->auth);
-        unset($newuser->auth); //can not change/remove
+        unset($newuser->auth);
+        // Can not change/remove.
     } else {
         $authplugin = get_auth_plugin($newuser->auth);
     }
@@ -144,7 +146,7 @@ if ($newuser = $userform->get_data()) {
     $newuser->timemodified = time();
 
     if ($newuser->id == -1) {
-        //TODO check out if it makes sense to create account with this auth plugin and what to do with the password
+        // TODO check out if it makes sense to create account with this auth plugin and what to do with the password.
         unset($newuser->id);
         $newuser->mnethostid = $CFG->mnet_localhost_id; // always local user
         $newuser->confirmed  = 1;
@@ -153,7 +155,7 @@ if ($newuser = $userform->get_data()) {
             print_error('errorcreateuser', 'block_user_delegation');
         }
 
-        //assign the created user on behalf of the creator.
+        // Assign the created user on behalf of the creator.
         userdelegation::attach_user($USER->id, $newuser->id);
         $usercreated = true;
 
@@ -163,14 +165,15 @@ if ($newuser = $userform->get_data()) {
             print_error('errorupdatinguser', 'block_user_delegation');
         }
 
-        // pass a true $userold here
+        // Pass a true $userold here.
         if (!$authplugin->user_update($user, $userform->get_data(false))) {
-            // auth update failed, rollback for moodle
+            // Auth update failed, rollback for moodle.
             $DB->update_record('user', $user);
             print_error('Failed to update user data on external auth: '.$user->auth.
                     '. See the server logs for more details.');
         }
-        //set new password if specified
+
+        // Set new password if specified.
         if (!empty($newuser->newpassword)) {
             if ($authplugin->can_change_password()) {
                 if (!$authplugin->user_update_password($newuser, $newuser->newpassword)){
@@ -182,16 +185,16 @@ if ($newuser = $userform->get_data()) {
         $usercreated = false;
     }
 
-    //update preferences
+    // Update preferences.
     useredit_update_user_preference($newuser);
 
-    // update mail bounces
+    // Update mail bounces.
     useredit_update_bounces($user, $newuser);
 
-    // update forum track preference
+    // Update forum track preference.
     useredit_update_trackforums($user, $newuser);
 
-    // save custom profile fields data
+    // Save custom profile fields data.
     profile_save_data($newuser);
 
     if (!empty($newuser->coursetoassign)) {
@@ -208,10 +211,10 @@ if ($newuser = $userform->get_data()) {
         }
     }
 
-    // reload from db
+    // Reload from db.
     $newuser = $DB->get_record('user', array('id' => $newuser->id));
-    // trigger events
 
+    // Trigger events.
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
 }
 
@@ -248,5 +251,5 @@ $userform->set_data($user);
 $userform->display();
 echo('</div>');
 
-/// add footer
+// Add footer.
 echo $OUTPUT->footer();

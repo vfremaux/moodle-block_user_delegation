@@ -58,11 +58,17 @@ $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
 $blockcontext = context_block::instance($blockid); // Course context.
-if (!has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
-    // Do in two steps to optimize response time.
-    if (!block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
-        redirect(new moodle_url('/my'));
+$canaddbulk = false;
+if (has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
+    $canaddbulk = true;
+} else {
+    if (block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers')) {
+        $canaddbulk = true;
     }
+}
+
+if (!$canaddbulk) {
+    redirect(new moodle_url('/course/view.php', array('id' => $courseid)));
 }
 
 $csvseparator = optional_param('fieldseparator', $config->csvseparator, PARAM_TEXT);
@@ -99,20 +105,16 @@ $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myuser
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
 
-$ownedcourses = enrol_get_users_courses($USER->id);
+
+$ownedcourses = userdelegation::get_owned_courses();
 $courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
-        $coursecontext = context_course::instance($c->id);
-        if (!has_capability('block/user_delegation:owncourse', $coursecontext))
-            continue;
-        }
-        $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
-          $courses_arr[$course->id] = $course->fullname ;
+        $coursesarr[$c->id] = $c->fullname;
     }
 }
 
-$mform = new UploadUserForm($url, array('courses' => $courses_arr));
+$mform = new UploadUserForm($url, array('courses' => $coursesarr));
 
 if ($mform->is_cancelled()) {
     $myusersurl = new moodle_url('/blocks/user_delegation/myusers.php', array('courseid' => $course->id, 'id' => $blockid));
@@ -131,7 +133,7 @@ echo '<div class="userpage-toolbar">';
 echo '<img src="'.$OUTPUT->pix_url('users', 'block_user_delegation').'" /> ';
 $usersreturnurl = new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid));
 echo '<a href="'.$usersreturnurl.'">'.get_string('myusers', 'block_user_delegation').'</a>';
-print '</div>'; 
+print '</div>';
 
 echo '<center>';
 
