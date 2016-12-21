@@ -332,7 +332,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 if ($data->updateaccounts) {
 
                     // Check deletion or suspension capability.
-                    if (userdelegation::has_owners($user->id)) {
+                    if (userdelegation::has_other_owners($user->id)) {
                         // There is NO possibility to delete or suspend a user i zam not the only owner.
                         $user->deleted = 0;
                         $user->suspended = 0;
