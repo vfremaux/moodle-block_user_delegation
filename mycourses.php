@@ -118,7 +118,7 @@ $uploadusersstr = get_string('uploadusers', 'block_user_delegation');
 $myusers = userdelegation::get_delegated_users($USER->id);
 
 if (!empty($user_courses)) {
-    foreach($user_courses as $c) {
+    foreach ($user_courses as $c) {
         $c = $DB->get_record('course', array('id' => $c->id));
         $coursecontext = context_course::instance($c->id);
         echo '<div class="user-delegation-course-cont">'; //course-cont
@@ -126,8 +126,10 @@ if (!empty($user_courses)) {
         $linkurl = new moodle_url('/course/view.php', array('id' => $c->id));
         echo '<div><h2><a href="'.$linkurl.'">'.$c->fullname.'</a></h2></div>';
         echo '<div>';
+        /*
         $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', array('course' => $course->id, 'id' => $blockid));
         echo '<div><b><a href="'.$linkurl.'" >'.$changeenrolmentstr.'</a></b></div>';
+        */
 
         if ($canaddbulk) {
             $params = array('course' => $course->id, 'coursetoassign' => $c->id, 'id' => $blockid);
@@ -177,7 +179,16 @@ if (!empty($user_courses)) {
         }
         if (!empty($course_students)) {
             foreach ($course_students as $u) {
-                echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' </div>';
+                $groups = groups_get_all_groups($c->id, $u->id);
+                $groupnamestr = '';
+                if (!empty($groups)) {
+                    $groupnames = array();
+                    foreach ($groups as $g) {
+                        $groupnames[] = $g->name;
+                    }
+                    $groupnamesstr = ' ('.implode(', ', $groupnames).')';
+                }
+                echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' '.$groupnamesstr.'</div>';
                 unset($myusers[$u->id]);
             }
         } else {
@@ -199,7 +210,7 @@ if (!empty($myusers)) {
     echo '<div>';
     echo '<div><h2>'.get_string('unassignedusers', 'block_user_delegation').'</h2></div>';
     echo '<div>';
-    foreach($myusers as $u) {
+    foreach ($myusers as $u) {
         echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' </div>';
     }
     echo '</div>';

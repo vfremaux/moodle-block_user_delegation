@@ -41,7 +41,15 @@ class block_user_delegation extends block_base {
     }
 
     public function instance_allow_config() {
-        return true;
+        $blockcontext = context_block::instance($this->instance->id);
+        return has_capability('block/user_delegation:configure', $blockcontext);
+    }
+
+    public function user_can_edit() {
+        if (has_capability('block/user_delegation:configure', $this->context)) {
+            return true;
+        }
+        return false;
     }
 
     public function has_config() {
