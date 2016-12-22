@@ -28,14 +28,17 @@ $string['user_delegation:view'] = 'Can view the block';
 
 $string['addnewgroup'] = 'Add new group....';
 $string['alphabet'] = 'Alphabet';
+$string['assignto'] = 'Enrol into course {$a}';
 $string['attachtome'] = 'Attach this user to me';
 $string['backtocourse'] = 'Back to course';
 $string['backtohome'] = 'Back to home';
+$string['badblockid'] = 'Bad block id';
 $string['blockname'] = 'User Administration Subdelegation';
 $string['changeenrolment'] = 'Change enrolments';
 $string['colon'] = ':';
 $string['comma'] = ',';
 $string['configallowenrol'] = 'Allow enrol';
+$string['configenrolduration'] = 'Enrol duration (in days, leave empty for no limit';
 $string['configcsvseparator'] = 'CSV separator';
 $string['configcsvseparator_desc'] = 'Separator of fields in csv file';
 $string['configdelegationownerrole'] = 'Role for user delegation binding';

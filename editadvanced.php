@@ -32,11 +32,18 @@ require_once($CFG->dirroot.'/user/profile/lib.php');
 
 $PAGE->https_required();
 
-$id = optional_param('id', $USER->id, PARAM_INT);    // user id; -1 if creating new user
+$id = optional_param('id', $USER->id, PARAM_INT);    // User id; -1 if creating new user.
 $blockid = required_param('blockid', PARAM_INT);
-$courseid = optional_param('course', SITEID, PARAM_INT);   // course id (defaults to Site)
+$courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
 
-$url = new moodle_url('/blocks/user_delegation/aditadvanced.php', array('course' => $course->id, 'blockid' => $blockid, 'id' => $id));
+if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
+    print_error('badblockid', 'block_user_delegation');
+}
+
+$theblock = block_instance('user_delegation', $instance);
+
+$params = array('course' => $course->id, 'blockid' => $blockid, 'id' => $id);
+$url = new moodle_url('/blocks/user_delegation/aditadvanced.php', $params);
 $PAGE->set_url($url);
 
 $PAGE->requires->jquery();
@@ -119,22 +126,28 @@ if (!empty($CFG->usetags)) {
 
 // Create form.
 $userform = new user_editadvanced_form();
-$userform->set_data($user);
+
+if ($userform->is_cancelled()) {
+    redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
+}
+
 if ($usernew = $userform->get_data()) {
-    add_to_log($course->id, 'user', 'update', "/user/view.php?id=$user->id&course=$course->id", '');
+
     if (empty($usernew->auth)) {
         // User editing self.
         $authplugin = get_auth_plugin($user->auth);
-        unset($usernew->auth); //can not change/remove
+        unset($usernew->auth); // Can not change/remove.
     } else {
         $authplugin = get_auth_plugin($usernew->auth);
     }
+
     $usernew->username     = trim($usernew->username);
     $usernew->timemodified = time();
+
     if ($usernew->id == -1) {
-        //TODO check out if it makes sense to create account with this auth plugin and what to do with the password
+        // TODO check out if it makes sense to create account with this auth plugin and what to do with the password.
         unset($usernew->id);
-        $usernew->mnethostid = $CFG->mnet_localhost_id; // always local user
+        $usernew->mnethostid = $CFG->mnet_localhost_id; // Always local user.
         $usernew->confirmed  = 1;
         $usernew->password = hash_internal_user_password($usernew->newpassword);
         try {
@@ -143,12 +156,8 @@ if ($usernew = $userform->get_data()) {
             error('Error creating user record');
         }
 
-        // Assing the created user on behalf of the creator.
-        $personalcontext = context_user::instance($usernew->id);
-        $role = $DB->get_record('role', array('shortname' => $config->corole));
-        if ($role) {
-            role_assign($role->id, $USER->id, 0, $personalcontext->id);
-        }
+        // Assign the created user on behalf of the creator.
+        userdelegation::attach_user($USER->id, $newuser->id);
         $usercreated = true;
     } else {
         if (!$DB->update_record('user', $usernew)) {
@@ -196,6 +205,28 @@ if ($usernew = $userform->get_data()) {
 
     // save custom profile fields data
     profile_save_data($usernew);
+
+    if (!empty($usernew->coursetoassign)) {
+        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $coursetoassign = $DB->get_record('course', array('id' => $usernew->coursetoassign));
+        $coursecontext = context_course::instance($coursetoassign->id);
+
+        // Compute enrolment end time if required by block config.
+        $end = 0;
+        if (!empty($theblock->config->enrolduration)) {
+            $end = time() + DAYSECS * $theblock->config->enrolduration;
+        }
+
+        if ($coursetoassign) {
+            // TODO : Rewrite assignation.
+            $params = array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED);
+            if ($enrols = $DB->get_records('enrol', $params, 'sortorder ASC')) {
+                $enrol = reset($enrols);
+                $enrolplugin = enrol_get_plugin('manual');
+                $enrolplugin->enrol_user($enrol, $usernew->id, $studentrole->id, time(), $end, ENROL_USER_ACTIVE);
+            }
+        }
+    }
 
     // Reload from db.
     $usernew = $DB->get_record('user', array('id' => $usernew->id));
@@ -272,6 +303,7 @@ if ($user->id == -1 or ($user->id != $USER->id)) {
 
 // Finally display THE form.
 echo('<div style="font-size:11px;">');
+$userform->set_data($user);
 $userform->display();
 echo('</div>');
 

@@ -180,7 +180,7 @@ if ($confirmuser and confirm_sesskey() && $cancreate) {
         }
 
         // If no more owners and need to delete, delete.
-        if (!userdelegation::has_owners($user->id) && @$config->lastownerdeletes) {
+        if (!userdelegation::has_other_owners($user->id) && @$config->lastownerdeletes) {
             if (delete_user($user)) {
                 echo $OUTPUT->notification(get_string('deletedactivity', '', fullname($user, true)));
             } else {
@@ -370,9 +370,11 @@ if (!$users) {
         $isbehalfof = has_capability('block/user_delegation:isbehalfof', $usercontext);
 
         if ($isbehalfof and ($user->id != $mainadmin->id) and !is_mnet_remote_user($user)) {
+
             $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => $user->id);
             $editurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
             $editbutton = '<a href="'.$editurl.'">'.$stredit.'</a>';
+
             if ($user->confirmed == 0) {
                 $params = array('id' => $blockid,
                                 'course' => $courseid,
@@ -468,7 +470,8 @@ $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/use
 echo '<div class="userpage-toolbar">';
 if (!empty($userownedcourses)) {
     // Only if owned courses.
-    $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', array('id' => $blockid, 'course' => $courseid));
+    $params = array('id' => $blockid, 'course' => $courseid);
+    $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
     $pixurl = $OUTPUT->pix_url('folders', 'block_user_delegation');
     echo '<img src="'.$pixurl.'" /> <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
     echo '| ';
@@ -477,7 +480,8 @@ if (!empty($userownedcourses)) {
 // Print upload users link.
 if ($canaddbulk) {
       echo '<img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" />';
-      $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', array('id' => $blockid, 'course' => $courseid));
+      $params = array('id' => $blockid, 'course' => $courseid);
+      $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
       echo '<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
 }
 echo '</div>';
