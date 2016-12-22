@@ -221,8 +221,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             $user->$key =  $optionalDefaults[$key];
         }
 
-        // Note: separator within a field should be encoded as &#XX (for semicolon separated csv files)
-        if (userdelegation::is_empty_line_or_format($l, ($data->fileencoding == 'Latin'))) continue;
+        // Note: separator within a field should be encoded as &#XX (for semicolon separated csv files).
+        if (userdelegation::is_empty_line_or_format($l, ($data->fileencoding == 'Latin'))) {
+            continue;
+        }
 
         $line = explode($csvseparator, $l);
 
@@ -258,21 +260,20 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $a->fieldname = $name;
                     $log .= useradmin_uploaduser_notify_error($linenum, get_string('missingvalue', 'block_user_delegation', $a), null, $record['username'], null);
                     continue;
-                }
 
-                // Password (needs to be encrypted).
-                elseif ($name == 'password' && !empty($value)) {
+                } else if ($name == 'password' && !empty($value)) {
+                    // Password (needs to be encrypted).
                     $user->password = hash_internal_user_password($value);
-                }
 
-                // Username (escape and force lowercase).
-                elseif ($name == 'username') {
+                } else if ($name == 'username') {
+                    // Username (escape and force lowercase).
                     $user->username = textlib::strtolower($value);
-                }
 
-                // Normal entry (escape only).
-                else {
-                    if (!in_array($name, array_keys($requiredFields)) && !in_array($name, array_keys($optionalFields)) && !userdelegation::pattern_match($name, $patterns)) {
+                } else {
+                    // Normal entry (escape only).
+                    if (!in_array($name, array_keys($requiredFields)) &&
+                            !in_array($name, array_keys($optionalFields)) &&
+                                    !userdelegation::pattern_match($name, $patterns)) {
                         $params = array('sesskey' => sesskey(), 'id' => $blockid, 'courseid' => $courseid);
                         $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
                         print_error('unexpectedfield', 'block_userdelegation', $name, $returnurl);
@@ -304,7 +305,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $invalidmails++;
                     $userserrors++;
                     continue;  // Skip line.
-                } elseif ($otheruser = $DB->get_record('user', array('email' => $user->email))) {
+                } else if ($otheruser = $DB->get_record('user', array('email' => $user->email))) {
                     // Check duplicate mail.
                     if ($otheruser && $otheruser->username <> $user->username) {
                         $log .= useradmin_uploaduser_notify_error($linenum, get_string('emailexists').": $user->email", null, $user->username, true);
@@ -318,28 +319,28 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // If mnethost ist not localhost, check if mnethost exist.
             // This should NOT happen in user delegation as this field is not given in documentation.
 
-            if ($user->mnethostid != $CFG->mnet_localhost_id && !$DB->record_exists('mnet_host', array('id' => $user->mnethostid))) {
+            if (($user->mnethostid != $CFG->mnet_localhost_id) &&
+                    !$DB->record_exists('mnet_host', array('id' => $user->mnethostid))) {
                 $log .= useradmin_uploaduser_notify_error($linenum, get_string('mnethostidnotexists', 'block_user_delegation', $user->mnethostid), null, $user->username, true);
                 $userserrors++;
                 continue;
             }
 
-            // Check if username already exists.
+            // Check if username already exists, eventually deleted or suspended.
 
             if ($olduser = $DB->get_record('user', array('username' => $username))) {
                 // If update is allowed, update record.
                 $user->id = $olduser->id;
                 if ($data->updateaccounts) {
 
-                    // Check deletion or suspension capability.
-                    if (userdelegation::has_other_owners($user->id)) {
-                        // There is NO possibility to delete or suspend a user i zam not the only owner.
-                        $user->deleted = 0;
-                        $user->suspended = 0;
-                    }
+                    // You are creating users that might have been previously deleted. Revive them.
+                    $user->deleted = 0;
+                    $user->suspended = 0;
 
                     // Record is being updated.
-                    if (!$DB->update_record('user', $user)) {
+                    try {
+                        $DB->update_record('user', $user);
+                    } catch (Exception $ex) {
                         $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotupdatederror', 'block_user_delegation'), $user->id, $user->username, true);
                         $userserrors++;
                         continue;
@@ -348,8 +349,17 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $log .= useradmin_uploaduser_notify_success($linenum, get_string('useraccountupdated', 'block_user_delegation') , $user->id, $user->username );
                     $usersupdated++;
                 } else {
-                    // If update is not allowed, skip line.
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotaddedregistered', 'block_user_delegation'), $user->id, $user->username, false);
+                    // If update is not allowed, just revive.
+                    $olduser->deleted = 0;
+                    $olduser->suspended = 0;
+                    try {
+                        $DB->update_record('user', $olduser);
+                    } catch (Exception $ex) {
+                        $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotaddedregistered', 'block_user_delegation'), $user->id, $user->username, false);
+                        $userserrors++;
+                        continue;
+                    }
+                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotupdatederror', 'block_user_delegation'), $user->id, $user->username, true);
                     $userserrors++;
                     // Do not skip line, as enrolments and groups should be processed.
                 }
@@ -388,13 +398,22 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 $studentrole = $DB->get_record('role', array('shortname' => 'student'));
                 $course = $DB->get_record('course', array('id' => $data->coursetoassign));
                 $coursecontext = context_course::instance($course->id);
+
+                // Compute enrolment end time if required by block config.
+                $end = 0;
+                if (!empty($theblock->config->enrolduration)) {
+                    $end = time() + DAYSECS * $theblock->config->enrolduration;
+                }
+
                 if ($course) {
                     // TODO : Rewrite assignation.
-                    if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
+                    $params = array('enrol' => 'manual', 'courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED);
+                    if ($enrols = $DB->get_records('enrol', $params, 'sortorder ASC')) {
                         $enrol = reset($enrols);
                         $enrolplugin = enrol_get_plugin('manual');
-                        $enrolplugin->enrol_user($enrol, $user->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
-                        $log .= useradmin_uploaduser_notify_success($linenum, get_string('userenrolled', 'block_user_delegation', $course->shortname), $user->id, $user->username);
+                        $enrolplugin->enrol_user($enrol, $user->id, $studentrole->id, time(), $end, ENROL_USER_ACTIVE);
+                        $message = get_string('userenrolled', 'block_user_delegation', $course->shortname);
+                        $log .= useradmin_uploaduser_notify_success($linenum, $message, $user->id, $user->username);
                     }
                 }
 
@@ -406,8 +425,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $newgroup->descriptionformat = 0;
                     $newgroup->timecreated = time();
                     $newgroup->timemodified = time();
-                    if (!$coursegroup = $DB->get_record('groups', array('courseid' => $newgroup->courseid, 'name' => $newgroup->name))) {
-                        $log .= useradmin_uploaduser_notify_success($linenum, get_string('groupcreated', 'block_user_delegation', $newgroup->name), $user->id, $user->username);
+                    $params = array('courseid' => $newgroup->courseid, 'name' => $newgroup->name);
+                    if (!$coursegroup = $DB->get_record('groups', $params)) {
+                        $message = get_string('groupcreated', 'block_user_delegation', $newgroup->name);
+                        $log .= useradmin_uploaduser_notify_success($linenum, $message, $user->id, $user->username);
                         $newgroup->id = $DB->insert_record('groups', $newgroup);
 
                         // Invalidate the grouping cache for the course.
@@ -434,7 +455,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     $groupmember->timeadded = time();
                     if (!$DB->record_exists('groups_members', array('groupid' => $coursegroup->id, 'userid' => $user->id))) {
                         $DB->insert_record('groups_members', $groupmember);
-                        $log .= useradmin_uploaduser_notify_success($linenum, get_string('groupadded', 'block_user_delegation', $coursegroup->name), $user->id, $user->username);
+                        $message = get_string('groupadded', 'block_user_delegation', $coursegroup->name);
+                        $log .= useradmin_uploaduser_notify_success($linenum, $message, $user->id, $user->username);
                     }
                 }
             }
