@@ -42,6 +42,12 @@ $PAGE->set_url($url);
 $courseid = optional_param('course', SITEID, PARAM_INT);
 $blockid = required_param('id', PARAM_INT); // The block id.
 
+if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
+    print_error('badblockid', 'block_user_delegation');
+}
+
+$theblock = block_instance('user_delegation', $instance);
+
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/uploaduser.php?id='.$courseid);
 
@@ -105,9 +111,8 @@ $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myuser
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
 
-
 $ownedcourses = userdelegation::get_owned_courses();
-$courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
+$coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
         $coursesarr[$c->id] = $c->fullname;
@@ -139,11 +144,11 @@ echo '<center>';
 
 $formdata = new StdClass();
 $formdata->id = $blockid;
-if ($course->id > SITEID) {
-    $formdata->course = $course->id;
+$formdata->course = $courseid;
+$formdata->coursetoassign = optional_param('coursetoassign', '', PARAM_INT);
+if ($courseid > SITEID) {
     $formdata->nomail = $defaultnomail;
 }
-
 $mform->set_data($formdata);
 $mform->display();
 

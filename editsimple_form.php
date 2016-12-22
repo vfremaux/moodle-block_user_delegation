@@ -127,12 +127,11 @@ class user_editsimple_form extends moodleform {
 
         if ($this->_customdata['userid'] == -1) {
             $btnstring = get_string('createuser');
+            if (!empty($this->_customdata['courses'])) {
+                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
+            }
         } else {
             $btnstring = get_string('update');
-        }
-
-        if (!empty($this->_customdata['courses'])) {
-            $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
         }
 
         $this->add_action_buttons(true, $btnstring);
