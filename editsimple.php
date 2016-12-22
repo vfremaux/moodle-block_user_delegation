@@ -37,7 +37,14 @@ $id = optional_param('id', -1, PARAM_INT);    // Edited user id; -1 if creating 
 $blockid = required_param('blockid', PARAM_INT);    // The block instance id.
 $courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
 
-$url = new moodle_url('/blocks/user_delegation/editsimple.php', array('blockid' => $blockid, 'course' => $courseid));
+if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
+    print_error('badblockid', 'block_user_delegation');
+}
+
+$theblock = block_instance('user_delegation', $instance);
+
+$params =  array('blockid' => $blockid, 'course' => $courseid, 'id' => $id);
+$url = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
 $PAGE->set_url($url);
 
 $PAGE->requires->jquery();
@@ -108,11 +115,11 @@ profile_load_data($user);
 // User interests separated by commas.
 if (!empty($CFG->usetags)) {
     require_once($CFG->dirroot.'/tag/lib.php');
-    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
+    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // Formslib uses htmlentities itself.
 }
 
 $ownedcourses = enrol_get_users_courses($USER->id);
-$courses_arr = array('0' => get_string('noassign', 'block_user_delegation'));
+$coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
         $coursecontext = context_course::instance($c->id);
@@ -120,12 +127,12 @@ if ($ownedcourses) {
             continue;
         }
         $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
-        $courses_arr[$course->id] = $course->fullname ;
+        $coursesarr[$course->id] = get_string('assignto', 'block_user_delegation', $course->fullname);
     }
 }
 
 // Create form.
-$userform = new user_editsimple_form($url, array('userid' => $user->id, 'courses' => $courses_arr));
+$userform = new user_editsimple_form($url, array('userid' => $user->id, 'courses' => $coursesarr));
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
@@ -148,7 +155,7 @@ if ($newuser = $userform->get_data()) {
     if ($newuser->id == -1) {
         // TODO check out if it makes sense to create account with this auth plugin and what to do with the password.
         unset($newuser->id);
-        $newuser->mnethostid = $CFG->mnet_localhost_id; // always local user
+        $newuser->mnethostid = $CFG->mnet_localhost_id; // Always local user.
         $newuser->confirmed  = 1;
         $newuser->password = hash_internal_user_password($newuser->newpassword);
         if (!$newuser->id = user_create_user($newuser, false, false)) {
@@ -201,12 +208,19 @@ if ($newuser = $userform->get_data()) {
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         $coursetoassign = $DB->get_record('course', array('id' => $newuser->coursetoassign));
         $coursecontext = context_course::instance($coursetoassign->id);
+
+        // Compute enrolment end time if required by block config.
+        $end = 0;
+        if (!empty($theblock->config->enrolduration)) {
+            $end = time() + DAYSECS * $theblock->config->enrolduration;
+        }
+
         if ($coursetoassign) {
             // TODO : Rewrite assignation.
             if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
                 $enrol = reset($enrols);
                 $enrolplugin = enrol_get_plugin('manual');
-                $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), 0, ENROL_USER_ACTIVE);
+                $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), $end, ENROL_USER_ACTIVE);
             }
         }
     }
@@ -229,7 +243,7 @@ if ($user->id == -1) {
     echo $OUTPUT->heading($userfullname);
 }
 
-// Finally display THE form.
+// Finally display the form.
 
 echo('<div style="font-size:11px;">');
 

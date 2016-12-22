@@ -40,6 +40,9 @@ class block_user_delegation_edit_form extends block_edit_form {
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
 
         $mform->addElement('checkbox', 'config_allowenrol', get_string('configallowenrol', 'block_user_delegation'), '', 1);
+
+        $mform->addElement('text', 'config_enrolduration', get_string('configenrolduration', 'block_user_delegation'), '');
+        $mform->setType('config_enrolduration', PARAM_TEXT);
     }
 
 }
