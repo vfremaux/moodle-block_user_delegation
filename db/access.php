@@ -124,7 +124,6 @@ $capabilities = array(
 
     /*
      *
-     *
      */
     'block/user_delegation:canbulkaddusers' => array(
         'captype'      => 'write',
@@ -148,7 +147,7 @@ $capabilities = array(
     ),
 
     /*
-     * Can add an instance on any "My" page of the user
+     * Can add an instance on any "My" page of the user.
      */
     'block/user_delegation:myaddinstance' => array(
         'captype'      => 'write',
@@ -160,7 +159,7 @@ $capabilities = array(
     ),
 
     /*
-     * Can add an instance on any "My" page of the user
+     * Can configure the instances.
      */
     'block/user_delegation:configure' => array(
         'riskbitmask' => RISK_CONFIG,
@@ -168,8 +167,7 @@ $capabilities = array(
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
-            'manager' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     )
 );
