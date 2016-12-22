@@ -40,6 +40,8 @@ function xmldb_block_user_delegation_install() {
      * courseowner role might exist f.e. if local_shop has been installed. We must test this
      * and complete the role if exists.
      */
+    $contextlevels = array(CONTEXT_COURSECAT, CONTEXT_COURSE, CONTEXT_USER);
+
     if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
             // Boostrap courseowner to the same as editingteacher.
@@ -71,6 +73,7 @@ function xmldb_block_user_delegation_install() {
             }
 
             set_config('block_user_delegation_co_role', $shortname);
+            set_role_contextlevels($roleid, $contextlevels);
         }
     } else {
         // Courseowner role exists already, just add capabilities to it.
@@ -101,5 +104,6 @@ function xmldb_block_user_delegation_install() {
         foreach ($overridetargetrole as $t) {
             allow_override($role->id, $t);
         }
+        set_role_contextlevels($roleid, $contextlevels);
     }
 }
