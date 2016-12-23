@@ -111,7 +111,7 @@ $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myuser
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
 
-$ownedcourses = userdelegation::get_owned_courses();
+$ownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:owncourse', false);
 $coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
 if ($ownedcourses) {
     foreach ($ownedcourses as $c) {
