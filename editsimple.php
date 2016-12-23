@@ -168,7 +168,9 @@ if ($newuser = $userform->get_data()) {
 
     } else {
 
-        if (!user_update_user($newuser, false, false)) {
+        try {
+            user_update_user($newuser, false, false);
+        } catch (Exception $e) {
             print_error('errorupdatinguser', 'block_user_delegation');
         }
 
