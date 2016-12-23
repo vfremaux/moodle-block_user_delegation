@@ -440,7 +440,6 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                             'objectid' => $newgroup->id
                         );
                         $event = \core\event\group_created::create($params);
-                        $event->add_record_snapshot('groups', $newgroup);
                         $event->trigger();
                         $coursegroup = $newgroup;
                     }
