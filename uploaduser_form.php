@@ -51,7 +51,7 @@ class UploadUserForm extends moodleform {
 
             $mform->addElement('select', 'grouptoassign', get_string('grouptoassign', 'block_user_delegation'), array('0' => get_string('nogroupswaitcourseslection', 'block_user_delegation')));
 
-            $mform->addElement('text', 'newgroupname', get_string('newgroupname',  'block_user_delegation'), '');
+            $mform->addElement('text', 'newgroupname', get_string('newgroupname', 'block_user_delegation'), '');
             $mform->setType('newgroupname', PARAM_TEXT);
         }
 
