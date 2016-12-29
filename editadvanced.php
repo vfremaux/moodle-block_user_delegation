@@ -36,6 +36,10 @@ $id = optional_param('id', $USER->id, PARAM_INT);    // User id; -1 if creating 
 $blockid = required_param('blockid', PARAM_INT);
 $courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
 
+if (!$course = $DB->get_record('course', array('id' => $courseid))) {
+    print_error('coursemisconf');
+}
+
 if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
     print_error('badblockid', 'block_user_delegation');
 }
@@ -50,10 +54,6 @@ $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/user_edit.php?id='.$courseid);
 
 $config = get_config('block_user_delegation');
-
-if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('coursemisconf');
-}
 
 // Security.
 
@@ -79,7 +79,6 @@ $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
     // Creating new user.
-    require_capability('block/user_delegation:cancreateusers', $coursecontext);
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';

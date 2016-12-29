@@ -300,14 +300,16 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // If a real mail has been specified, check it is a valid address (if not, skip line).
 
             if ($user->email != $data->nomail) {
+                $params = array($user->username, $user->email);
+                $select = " username != ? AND email = ? ";
                 if (!validate_email($user->email)) {
                     $log .= useradmin_uploaduser_notify_error($linenum, get_string('invalidemail').": $user->email", null, $user->username, true);
                     $invalidmails++;
                     $userserrors++;
-                    continue;  // Skip line.
-                } else if ($otheruser = $DB->get_record('user', array('email' => $user->email))) {
-                    // Check duplicate mail.
-                    if ($otheruser && $otheruser->username <> $user->username) {
+                    continue; // Skip line.
+                } else if ($otheruser = $DB->get_record_select('user', $select, $params)) {
+                    // Check duplicate mail with other username.
+                    if ($otheruser) {
                         $log .= useradmin_uploaduser_notify_error($linenum, get_string('emailexists').": $user->email", null, $user->username, true);
                         $duplicatemails++;
                         $userserrors++;
@@ -346,7 +348,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         continue;
                     }
 
-                    $log .= useradmin_uploaduser_notify_success($linenum, get_string('useraccountupdated', 'block_user_delegation') , $user->id, $user->username );
+                    $log .= useradmin_uploaduser_notify_success($linenum, get_string('useraccountupdated', 'block_user_delegation') , $user->id, $user->username);
                     $usersupdated++;
                 } else {
                     // If update is not allowed, just revive.
@@ -442,6 +444,17 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         $event = \core\event\group_created::create($params);
                         $event->trigger();
                         $coursegroup = $newgroup;
+                    }
+
+                    // Self enrol ourself in the created group to take control.
+                    $groupmember = new StdClass();
+                    $groupmember->groupid = $coursegroup->id;
+                    $groupmember->userid = $USER->id;
+                    $groupmember->timeadded = time();
+                    if (!$DB->record_exists('groups_members', array('groupid' => $coursegroup->id, 'userid' => $USER->id))) {
+                        $DB->insert_record('groups_members', $groupmember);
+                        $message = get_string('groupadded', 'block_user_delegation', $coursegroup->name);
+                        $log .= useradmin_uploaduser_notify_success($linenum, $message, $USER->id, $USER->username);
                     }
                 } else if (!empty($data->grouptoassign)) {
                     $coursegroup = $DB->get_record('groups', array('id' => $data->grouptoassign));
