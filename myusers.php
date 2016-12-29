@@ -114,7 +114,6 @@ if (!isset($config->corole)) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('myusers', 'block_user_delegation'));
 
 // Adding a user.
 
@@ -171,10 +170,10 @@ if ($confirmuser and confirm_sesskey() && $cancreate) {
         // Unenroll from all my owned courses.
         if ($courses = user_delegation_get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', $USER->access, false)) {
             foreach ($courses as $c) {
-                $c_context = context_course::instance($c->id);
-                $userroles = get_user_roles($c_context, $user->id, false);
+                $ccontext = context_course::instance($c->id);
+                $userroles = get_user_roles($ccontext, $user->id, false);
                 foreach ($userroles as $r) {
-                    role_unassign($r->id, $user->id, $c_context->id);
+                    role_unassign($r->id, $user->id, $ccontext->id);
                 }
             }
         }
@@ -270,7 +269,7 @@ if ($sort == 'name') {
 $extrasqlparts = $ufiltering->get_sql_filter();
 $users = userdelegation::get_delegated_users($USER->id, $sort, $dir, $page * $perpage, $perpage, '', '', '', $extrasqlparts);
 if ($users) {
-     $usercount = count($users); //
+     $usercount = count($users);
 } else {
      $usercount = 0;
 }
@@ -283,11 +282,12 @@ if ($allusers = userdelegation::get_delegated_users($USER->id, $sort, $dir, 0, 0
     $usersearchcount = 0;
 }
 
+// Print heading and extra parts.
 if (@$extrasqlparts[0] !== '') {
-    echo $OUTPUT->heading("$usersearchcount / $usercount ".get_string('users'));
+    echo $OUTPUT->heading(get_string('myusers', 'block_user_delegation').": $usersearchcount / $usercount ".get_string('users'));
     $usercount = $usersearchcount;
 } else {
-    echo $OUTPUT->heading("$usercount ".get_string('users'));
+    echo $OUTPUT->heading(get_string('myusers', 'block_user_delegation').': '.$usercount.' '.get_string('users'));
 }
 
 $alphabet = explode(',', get_string('alphabet', 'block_user_delegation'));
@@ -455,12 +455,12 @@ $ufiltering->display_active();
 if ($cancreate) {
     if (!empty($config->useadvanced)) {
         $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
-        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params²);
-        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+        $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params);
+        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('newuser', 'block_user_delegation').'</a>');
     } else {
         $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
         $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
-        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+        echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('newuser', 'block_user_delegation').'</a>');
     }
 }
 
@@ -498,11 +498,11 @@ if (!empty($table)) {
         if (!empty($config->useadvanced)) {
             $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
             $adduserurl = new moodle_url('/blocks/user_delegation/editadvanced.php', $params);
-            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('newuser', 'block_user_delegation').'</a>');
         } else {
             $params = array('course' => $courseid, 'blockid' => $blockid, 'id' => -1);
             $adduserurl = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
-            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('addnewuser').'</a>');
+            echo $OUTPUT->heading('<a href="'.$adduserurl.'">'.get_string('newuser', 'block_user_delegation').'</a>');
         }
     }
 }
