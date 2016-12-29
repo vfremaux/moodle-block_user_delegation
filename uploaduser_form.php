@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package     block_user_delegation
  * @category    blocks
@@ -23,6 +21,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
@@ -51,7 +50,7 @@ class UploadUserForm extends moodleform {
 
             $mform->addElement('select', 'grouptoassign', get_string('grouptoassign', 'block_user_delegation'), array('0' => get_string('nogroupswaitcourseslection', 'block_user_delegation')));
 
-            $mform->addElement('text', 'newgroupname', get_string('newgroupname',  'block_user_delegation'), '');
+            $mform->addElement('text', 'newgroupname', get_string('newgroupname', 'block_user_delegation'), '');
             $mform->setType('newgroupname', PARAM_TEXT);
         }
 
