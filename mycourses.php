@@ -26,10 +26,10 @@ require('../../config.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 
-$blockid = required_param('id', PARAM_INT);   // block id (defaults to Site)
-$courseid = optional_param('course', SITEID, PARAM_INT);   // course id (defaults to Site)
-$cancelemailchange = optional_param('cancelemailchange', false, PARAM_INT);   // course id (defaults to Site)
-$page = optional_param('page', 1, PARAM_INT);   // course id (defaults to Site)
+$blockid = required_param('id', PARAM_INT);   // Block id (defaults to Site).
+$courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
+$cancelemailchange = optional_param('cancelemailchange', false, PARAM_INT);   // Course id (defaults to Site).
+$page = optional_param('page', 1, PARAM_INT);   // Course id (defaults to Site).
 
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/mycourses.php?id='.$courseid);
@@ -41,13 +41,15 @@ require_login();
 $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
+$renderer = $PAGE->get_renderer('block_user_delegation');
+
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('coursemisconf');
 }
 
 // Security.
 
-$blockcontext = context_block::instance($blockid);   // Course context
+$blockcontext = context_block::instance($blockid);   // Block context.
 
 $cancreate = false;
 if (has_capability('block/user_delegation:cancreateusers', $blockcontext)) {
@@ -77,7 +79,7 @@ if (has_capability('block/user_delegation:candeleteusers', $blockcontext)) {
     }
 }
 
-// Guest can not edit
+// Guest can not edit.
 
 if (isguestuser()) {
     print_error('guestnoeditprofile');
@@ -102,26 +104,24 @@ $usersurl->param('id', $blockid);
 if ($course->id > SITEID) {
     $usersurl->param('course', $course->id);
 }
-echo '<a href="'.$usersurl.'">'.get_string('myusers', 'block_user_delegation').'</a>'; 
+echo '<a href="'.$usersurl.'">'.get_string('myusers', 'block_user_delegation').'</a>';
 echo '</div>';
 
-echo $OUTPUT->heading(get_string('mydelegatedcourses', 'block_user_delegation'));
-
-$totalcoursesstr = get_string('totalcourses', 'block_user_delegation');
-echo '<div id="user-delegation-toolbar">'; //toolbar
-echo '<div><b>'.$totalcoursesstr.': </b>'.$coursescount.'</div>';
-echo '</div>';
+echo $OUTPUT->heading(get_string('mydelegatedcourses', 'block_user_delegation').' '.$coursescount.' '.get_string('courses'));
 
 $changeenrolmentstr = get_string('changeenrolment', 'block_user_delegation');
 $uploadusersstr = get_string('uploadusers', 'block_user_delegation');
 
 $myusers = userdelegation::get_delegated_users($USER->id);
+$allassignedusers = $myusers;
 
 if (!empty($user_courses)) {
+
     foreach ($user_courses as $c) {
+
         $c = $DB->get_record('course', array('id' => $c->id));
         $coursecontext = context_course::instance($c->id);
-        echo '<div class="user-delegation-course-cont">'; //course-cont
+        echo '<div class="user-delegation-course-cont">';
         echo '<div>';
         $linkurl = new moodle_url('/course/view.php', array('id' => $c->id));
         echo '<div><h2><a href="'.$linkurl.'">'.$c->fullname.'</a></h2></div>';
@@ -139,13 +139,14 @@ if (!empty($user_courses)) {
 
         echo '</div>';
         echo '</div>';
+        echo '</div>'; // Course cont.
 
         echo '<p></p>';
 
         $course_teachers = get_users_by_capability($coursecontext, 'moodle/course:grade', 'u.id,'.get_all_user_name_fields(true, 'u'));
         $teachersstr = get_string('teachers', 'block_user_delegation');
         echo "<b>$teachersstr <a href='#' class='courseteachers-btn' id='".$c->id."'  >+</a></b>";
-        echo '<div class="cteacherscont" id="cteacherscont-'.$c->id.'">';//all users 
+        echo '<div class="cteacherscont" id="cteacherscont-'.$c->id.'">'; // All teachers.
 
         if (!empty($course_teachers)) {
             foreach ($course_teachers as $uid => $u) {
@@ -162,14 +163,14 @@ if (!empty($user_courses)) {
         } else {
             echo '<div class="user-delegation-user">'.get_string('noteachers', 'block_user_delegation').'</div>';
         }
-        echo '</div>';//allteachers
+        echo '</div>'; // All teachers.
 
         $course_students = get_enrolled_users($coursecontext);
         $studentsstr = get_string('students');
 
         echo '</br>';
         echo "<b>$studentsstr <a href='#' class='coursestudents-btn' id='".$c->id."'  >+</a></b>";
-        echo '<div class="cstudentscont" id="cstudentscont-'.$c->id.'">';//all users 
+        echo '<div class="cstudentscont" id="cstudentscont-'.$c->id.'">'; // All students
         if (!empty($course_students)) {
             foreach ($course_students as $uid => $u) {
                 if (!array_key_exists($u->id, $myusers)) {
@@ -177,10 +178,11 @@ if (!empty($user_courses)) {
                 };
             }
         }
+
         if (!empty($course_students)) {
             foreach ($course_students as $u) {
                 $groups = groups_get_all_groups($c->id, $u->id);
-                $groupnamestr = '';
+                $groupnamesstr = '';
                 if (!empty($groups)) {
                     $groupnames = array();
                     foreach ($groups as $g) {
@@ -189,13 +191,12 @@ if (!empty($user_courses)) {
                     $groupnamesstr = ' ('.implode(', ', $groupnames).')';
                 }
                 echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' '.$groupnamesstr.'</div>';
-                unset($myusers[$u->id]);
+                unset($allassignedusers[$u->id]);
             }
         } else {
             echo '<div class="user-delegation-user">'.get_string('nostudents', 'block_user_delegation').'</div>';
         }
-        echo '</div>';//allusers
-        echo '</div>';
+        echo '</div>'; // All-students.
     }
     echo $OUTPUT->paging_bar($coursescount, $page, $perpage, 'mycourses.php');
 } else {
@@ -204,17 +205,9 @@ if (!empty($user_courses)) {
     echo '<br/>';
 }
 
-// Print all unassigned users belonging to me
-if (!empty($myusers)) {
-    echo '<div class="user-delegation-course-cont">'; //course-cont
-    echo '<div>';
-    echo '<div><h2>'.get_string('unassignedusers', 'block_user_delegation').'</h2></div>';
-    echo '<div>';
-    foreach ($myusers as $u) {
-        echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' </div>';
-    }
-    echo '</div>';
-    echo '</div>';
+// Print all unassigned users belonging to me.
+if (!empty($allassignedusers)) {
+    echo $renderer->unassigned_users($allassignedusers);
 }
 
 if ($courseid == SITEID) {
@@ -223,7 +216,8 @@ if ($courseid == SITEID) {
     echo '<br/><center>';
 } else {
     echo '<center><br/>';
-    echo $OUTPUT->single_button(new moodle_url('/course/view.php', array('id' => $course->id)), get_string('backtocourse', 'block_user_delegation'), 'get');
+    $buttonurl = new moodle_url('/course/view.php', array('id' => $course->id));
+    echo $OUTPUT->single_button($buttonurl, get_string('backtocourse', 'block_user_delegation'), 'get');
     echo '<br/><center>';
 }
 

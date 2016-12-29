@@ -48,7 +48,6 @@ class user_editsimple_form extends moodleform {
         }
 
         // Accessibility: "Required" is bad legend text.
-        $strgeneral  = get_string('general');
         $strrequired = get_string('required');
 
         // Add some extra hidden fields.
@@ -60,9 +59,6 @@ class user_editsimple_form extends moodleform {
 
         $mform->addElement('hidden', 'blockid');
         $mform->setType('blockid', PARAM_INT);
-
-        // Print the required moodle fields first.
-        $mform->addElement('header', 'moodle', $strgeneral);
 
         $mform->addElement('text', 'username', get_string('username'), 'size="20"');
         $mform->addRule('username', $strrequired, 'required', null, 'client');
