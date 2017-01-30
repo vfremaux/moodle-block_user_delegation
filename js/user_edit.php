@@ -51,7 +51,7 @@ $(document).ready(function() {
         if (uid != -1) {
             $('#mform1').submit();
         } else {
-            $(this).val("<?php print_string('validatinguser', 'block_user_delegation') ?>.'"); 
+            $(this).val("<?php print_string('validatinguser', 'block_user_delagation') ?>.'"); 
             var email = $('#id_email').val();
             var firstname = $('#id_firstname').val();
             var lastname = $('#id_lastname').val();
