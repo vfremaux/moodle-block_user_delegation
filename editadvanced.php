@@ -79,6 +79,7 @@ $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
     // Creating new user.
+    require_capability('block/user_delegation:cancreateusers', $coursecontext);
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';
@@ -131,7 +132,6 @@ if ($userform->is_cancelled()) {
 }
 
 if ($usernew = $userform->get_data()) {
-
     if (empty($usernew->auth)) {
         // User editing self.
         $authplugin = get_auth_plugin($user->auth);
