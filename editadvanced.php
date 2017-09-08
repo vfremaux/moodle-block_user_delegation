@@ -79,6 +79,7 @@ $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
     // Creating new user.
+    require_capability('block/user_delegation:cancreateusers', $coursecontext);
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';
@@ -118,10 +119,7 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // user interests separated by commas
-if (!empty($CFG->usetags)) {
-    require_once($CFG->dirroot.'/tag/lib.php');
-    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
-}
+$user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id); // formslib uses htmlentities itself
 
 // Create form.
 $userform = new user_editadvanced_form();
@@ -131,7 +129,6 @@ if ($userform->is_cancelled()) {
 }
 
 if ($usernew = $userform->get_data()) {
-
     if (empty($usernew->auth)) {
         // User editing self.
         $authplugin = get_auth_plugin($user->auth);
