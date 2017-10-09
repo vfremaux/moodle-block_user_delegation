@@ -127,9 +127,9 @@ class block_user_delegation extends block_base {
      */
     static public function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
         global $USER, $DB;
-    
+
         $contextclause = '';
-    
+
         if ($contextlevels) {
             list($sql, $params) = $DB->get_in_or_equal(explode(',', $contextlevels), SQL_PARAMS_NAMED);
             $contextclause = "
@@ -142,8 +142,9 @@ class block_user_delegation extends block_base {
         // This is a a quick rough query that may not handle all role override possibility.
 
         $sql = "
-            SELECT
-                DISTINCT ra.id
+            SELECT DISTINCT
+                CONCAT(ctx.contextlevel, ':', ctx.instanceid) as ctxkey,
+                ctx.id as ctkid
             FROM
                 {role_capabilities} rc,
                 {role_assignments} ra,
@@ -157,8 +158,10 @@ class block_user_delegation extends block_base {
                 rc.permission = 1
         ";
         $hassome = $DB->get_records_sql($sql, $params);
-        if ($excludesite && !empty($hassome) && array_key_exists(SITEID, $hassome)) {
-            unset($hassome[SITEID]);
+
+        $key = CONTEXT_COURSE.':'.SITEID;
+        if ($excludesite && !empty($hassome) && array_key_exists($key, $hassome)) {
+            unset($hassome[$key]);
         }
 
         if (!empty($hassome)) {

@@ -34,7 +34,8 @@ class user_editadvanced_form extends moodleform {
         $mform =& $this->_form;
         $editoroptions = null;
         $filemanageroptions = null;
-        $userid = $USER->id;
+        $user = $this->_customdata['user'];
+        $userid = $user->id;
 
         if (is_array($this->_customdata)) {
             if (array_key_exists('editoroptions', $this->_customdata)) {
@@ -81,7 +82,7 @@ class user_editadvanced_form extends moodleform {
         $mform->addHelpButton('preference_auth_forcepasswordchange', 'forcepasswordchange');
 
         // Shared fields.
-        useredit_shared_definition($mform, $editoroptions, $filemanageroptions);
+        useredit_shared_definition($mform, $editoroptions, $filemanageroptions, $user);
 
         // Next the customisable profile fields.
         profile_definition($mform, $userid);
