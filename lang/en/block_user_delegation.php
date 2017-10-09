@@ -163,7 +163,7 @@ $string['uploadusers_help'] = '
 
     <code>profile_field_xxxxx</code>
 
-<p><b>Champs spéciaux</b> : Those fields may help you to delete or suspend users. Note that you cannot delete nor suspend users that 
+<p><b>Special fields</b> : Those fields may help you to delete or suspend users. Note that you cannot delete nor suspend users that 
 are shared with other mentors.</p>
 
     <code>deleted</code>, <code>suspended</code>
