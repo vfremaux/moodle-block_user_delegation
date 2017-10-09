@@ -29,12 +29,12 @@ require_once($CFG->dirroot.'/blocks/user_delegation/editadvanced_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
-
-$PAGE->https_required();
+require_once($CFG->dirroot.'/user/lib.php');
 
 $id = optional_param('id', $USER->id, PARAM_INT);    // User id; -1 if creating new user.
 $blockid = required_param('blockid', PARAM_INT);
 $courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
+$returnto = optional_param('returnto', null, PARAM_ALPHA);  // Code determining where to return to after save.
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('coursemisconf');
@@ -79,11 +79,13 @@ $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
     // Creating new user.
+    require_capability('block/user_delegation:cancreateusers', $coursecontext);
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';
     $user->confirmed = 1;
     $user->deleted = 0;
+    $user->timezone = '99';
 } else {
     // Editing existing user.
     $personalcontext = context_user::instance($id); 
@@ -104,10 +106,11 @@ if ($user->id != $USER->id and is_primary_admin($user->id)) {  // Can't edit pri
 if (isguestuser($user->id)) { // the real guest user can not be edited
     print_error('guestnoeditprofileother');
 }
+
 if ($user->deleted) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('userdeleted'));
-    echo $OUTPUT->footer($course);
+    echo $OUTPUT->footer();
     die;
 }
 
@@ -124,14 +127,16 @@ if (!empty($CFG->usetags)) {
 }
 
 // Create form.
-$userform = new user_editadvanced_form();
+$userform = new user_editadvanced_form(new moodle_url($PAGE->url, array('returnto' => $returnto)), array(
+    'editoroptions' => $editoroptions,
+    'filemanageroptions' => $filemanageroptions,
+    'user' => $user));
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
 }
 
 if ($usernew = $userform->get_data()) {
-
     if (empty($usernew->auth)) {
         // User editing self.
         $authplugin = get_auth_plugin($user->auth);
@@ -202,7 +207,7 @@ if ($usernew = $userform->get_data()) {
     // Update forum track preference.
     useredit_update_trackforums($user, $usernew);
 
-    // save custom profile fields data
+    // Save custom profile fields data.
     profile_save_data($usernew);
 
     if (!empty($usernew->coursetoassign)) {
@@ -254,7 +259,7 @@ if ($usernew = $userform->get_data()) {
             redirect(new mooodle_url('/user/view.php', array('id' => $USER->id, 'course' => $course->id)));
         }
     } else {
-                                                                                                                                                                                                                                                                                                                                                                                        redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('course' => $course->id, 'id' => $blockid)));
+        redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('course' => $course->id, 'id' => $blockid)));
     }
     // Never reached.
 }
@@ -285,6 +290,7 @@ if ($user->id == -1 or ($user->id != $USER->id)) {
     $strparticipants  = get_string('participants');
     $strnewuser       = get_string('newuser');
     $userfullname     = fullname($user, true);
+
     $PAGE->set_title("$course->shortname: $streditmyprofile");
     if (has_capability('moodle/course:viewparticipants', $coursecontext) || has_capability('moodle/site:viewparticipants', $systemcontext)) {
         $PAGE->navbar->add($strparticipants, new moodle_url('/user/index.php', array('id' => $course->id)));
@@ -307,8 +313,4 @@ $userform->display();
 echo('</div>');
 
 // And proper footer.
-if (!empty($USER->newadminuser)) {
-    echo $OUTPUT->footer('none');
-} else {
-    echo $OUTPUT->footer($course);
-}
+echo $OUTPUT->footer();
