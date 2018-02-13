@@ -120,14 +120,46 @@ useredit_load_preferences($user);
 // Load custom profile fields data.
 profile_load_data($user);
 
-// user interests separated by commas
-if (!empty($CFG->usetags)) {
-    require_once($CFG->dirroot.'/tag/lib.php');
-    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // formslib uses htmlentities itself
+// User interests.
+$user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id); // formslib uses htmlentities itself
+
+if ($user->id !== -1) {
+    $usercontext = context_user::instance($user->id);
+    $editoroptions = array(
+        'maxfiles'   => EDITOR_UNLIMITED_FILES,
+        'maxbytes'   => $CFG->maxbytes,
+        'trusttext'  => false,
+        'forcehttps' => false,
+        'context'    => $usercontext
+    );
+
+    $user = file_prepare_standard_editor($user, 'description', $editoroptions, $usercontext, 'user', 'profile', 0);
+} else {
+    $usercontext = null;
+    // This is a new user, we don't want to add files here.
+    $editoroptions = array(
+        'maxfiles' => 0,
+        'maxbytes' => 0,
+        'trusttext' => false,
+        'forcehttps' => false,
+        'context' => $coursecontext
+    );
 }
 
+// Prepare filemanager draft area.
+$draftitemid = 0;
+$filemanagercontext = $editoroptions['context'];
+$filemanageroptions = array('maxbytes'       => $CFG->maxbytes,
+                             'subdirs'        => 0,
+                             'maxfiles'       => 1,
+                             'accepted_types' => 'web_image');
+file_prepare_draft_area($draftitemid, $filemanagercontext->id, 'user', 'newicon', 0, $filemanageroptions);
+$user->imagefile = $draftitemid;
 // Create form.
-$userform = new user_editadvanced_form();
+$userform = new user_editadvanced_form(new moodle_url($PAGE->url, array('returnto' => $returnto)), array(
+    'editoroptions' => $editoroptions,
+    'filemanageroptions' => $filemanageroptions,
+    'user' => $user));
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
