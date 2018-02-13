@@ -83,10 +83,14 @@ class user_editadvanced_form extends moodleform {
 
         // Shared fields.
 <<<<<<< HEAD
+<<<<<<< HEAD
         useredit_shared_definition($mform, $editoroptions, $filemanageroptions);
 =======
         useredit_shared_definition($mform, $editoroptions, $filemanageroptions, $user);
 >>>>>>> MOODLE_33_STABLE
+=======
+        useredit_shared_definition($mform, $editoroptions, $filemanageroptions, $user);
+>>>>>>> MOODLE_34_STABLE
 
         // Next the customisable profile fields.
         profile_definition($mform, $userid);

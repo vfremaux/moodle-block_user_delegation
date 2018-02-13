@@ -32,6 +32,7 @@ require_once($CFG->dirroot.'/user/profile/lib.php');
 require_once($CFG->dirroot.'/user/lib.php');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 $PAGE->https_required();
 
 $id = optional_param('id', $USER->id, PARAM_INT);    // User id; -1 if creating new user.
@@ -53,6 +54,17 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 }
 
 >>>>>>> MOODLE_33_STABLE
+=======
+$id = optional_param('id', $USER->id, PARAM_INT);    // User id; -1 if creating new user.
+$blockid = required_param('blockid', PARAM_INT);
+$courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
+$returnto = optional_param('returnto', null, PARAM_ALPHA);  // Code determining where to return to after save.
+
+if (!$course = $DB->get_record('course', array('id' => $courseid))) {
+    print_error('coursemisconf');
+}
+
+>>>>>>> MOODLE_34_STABLE
 if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
     print_error('badblockid', 'block_user_delegation');
 }
@@ -169,13 +181,19 @@ file_prepare_draft_area($draftitemid, $filemanagercontext->id, 'user', 'newicon'
 $user->imagefile = $draftitemid;
 // Create form.
 <<<<<<< HEAD
+<<<<<<< HEAD
 $userform = new user_editadvanced_form();
 =======
+=======
+>>>>>>> MOODLE_34_STABLE
 $userform = new user_editadvanced_form(new moodle_url($PAGE->url, array('returnto' => $returnto)), array(
     'editoroptions' => $editoroptions,
     'filemanageroptions' => $filemanageroptions,
     'user' => $user));
+<<<<<<< HEAD
 >>>>>>> MOODLE_33_STABLE
+=======
+>>>>>>> MOODLE_34_STABLE
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
@@ -183,9 +201,12 @@ if ($userform->is_cancelled()) {
 
 if ($usernew = $userform->get_data()) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> MOODLE_33_STABLE
+=======
+>>>>>>> MOODLE_34_STABLE
     if (empty($usernew->auth)) {
         // User editing self.
         $authplugin = get_auth_plugin($user->auth);
@@ -363,6 +384,7 @@ echo('</div>');
 
 // And proper footer.
 <<<<<<< HEAD
+<<<<<<< HEAD
 if (!empty($USER->newadminuser)) {
     echo $OUTPUT->footer('none');
 } else {
@@ -371,3 +393,6 @@ if (!empty($USER->newadminuser)) {
 =======
 echo $OUTPUT->footer();
 >>>>>>> MOODLE_33_STABLE
+=======
+echo $OUTPUT->footer();
+>>>>>>> MOODLE_34_STABLE

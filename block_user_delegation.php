@@ -128,6 +128,7 @@ class block_user_delegation extends block_base {
     static public function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
         global $USER, $DB;
 <<<<<<< HEAD
+<<<<<<< HEAD
     
         $contextclause = '';
     
@@ -136,6 +137,11 @@ class block_user_delegation extends block_base {
         $contextclause = '';
 
 >>>>>>> MOODLE_33_STABLE
+=======
+
+        $contextclause = '';
+
+>>>>>>> MOODLE_34_STABLE
         if ($contextlevels) {
             list($sql, $params) = $DB->get_in_or_equal(explode(',', $contextlevels), SQL_PARAMS_NAMED);
             $contextclause = "
@@ -149,6 +155,7 @@ class block_user_delegation extends block_base {
 
         $sql = "
 <<<<<<< HEAD
+<<<<<<< HEAD
             SELECT
                 DISTINCT ra.id
 =======
@@ -156,6 +163,11 @@ class block_user_delegation extends block_base {
                 CONCAT(ctx.contextlevel, ':', ctx.instanceid) as ctxkey,
                 ctx.id as ctkid
 >>>>>>> MOODLE_33_STABLE
+=======
+            SELECT DISTINCT
+                CONCAT(ctx.contextlevel, ':', ctx.instanceid) as ctxkey,
+                ctx.id as ctkid
+>>>>>>> MOODLE_34_STABLE
             FROM
                 {role_capabilities} rc,
                 {role_assignments} ra,
@@ -170,14 +182,20 @@ class block_user_delegation extends block_base {
         ";
         $hassome = $DB->get_records_sql($sql, $params);
 <<<<<<< HEAD
+<<<<<<< HEAD
         if ($excludesite && !empty($hassome) && array_key_exists(SITEID, $hassome)) {
             unset($hassome[SITEID]);
 =======
+=======
+>>>>>>> MOODLE_34_STABLE
 
         $key = CONTEXT_COURSE.':'.SITEID;
         if ($excludesite && !empty($hassome) && array_key_exists($key, $hassome)) {
             unset($hassome[$key]);
+<<<<<<< HEAD
 >>>>>>> MOODLE_33_STABLE
+=======
+>>>>>>> MOODLE_34_STABLE
         }
 
         if (!empty($hassome)) {
