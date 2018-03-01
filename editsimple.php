@@ -113,18 +113,7 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // User interests separated by commas.
-<<<<<<< HEAD
-<<<<<<< HEAD
-if (!empty($CFG->usetags)) {
-    require_once($CFG->dirroot.'/tag/lib.php');
-    $user->interests = tag_get_tags_csv('user', $id, TAG_RETURN_TEXT); // Formslib uses htmlentities itself.
-}
-=======
 $user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id);
->>>>>>> MOODLE_33_STABLE
-=======
-$user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id);
->>>>>>> MOODLE_34_STABLE
 
 $ownedcourses = enrol_get_users_courses($USER->id);
 $coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
