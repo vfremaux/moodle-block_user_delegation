@@ -98,7 +98,7 @@ $user_courses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_de
 $coursescount = count($user_courses);
 
 echo '<div class="userpage-toolbar">';
-echo '<img src="'.$OUTPUT->pix_url('users', 'block_user_delegation').'" /> ';
+echo $OUTPUT->pix_icon('users', '', 'block_user_delegation');
 $usersurl = new moodle_url('/blocks/user_delegation/myusers.php');
 $usersurl->param('id', $blockid);
 if ($course->id > SITEID) {
@@ -134,7 +134,7 @@ if (!empty($user_courses)) {
         if ($canaddbulk) {
             $params = array('course' => $course->id, 'coursetoassign' => $c->id, 'id' => $blockid);
             $linkurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
-            echo '<div><b><img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" /><a href="'.$linkurl.'" >'.$uploadusersstr.'</a></b></div>';
+            echo '<div><b>'.$OUTPUT->pix_icon('upload', '', 'block_user_delegation').'<a href="'.$linkurl.'" >'.$uploadusersstr.'</a></b></div>';
         }
 
         echo '</div>';
@@ -157,7 +157,8 @@ if (!empty($user_courses)) {
         }
         if (!empty($course_teachers)) {
               foreach ($course_teachers as $u) {
-                echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user-teacher', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' </div>';
+                echo '<div class="user-delegation-user">';
+                echo $OUTPUT->pix_icon('user-teacher', '', 'block_user_delegation').' '.$u->firstname.' '.$u->lastname.' </div>';
                 unset($myusers[$u->id]);
             }
         } else {
@@ -190,7 +191,7 @@ if (!empty($user_courses)) {
                     }
                     $groupnamesstr = ' ('.implode(', ', $groupnames).')';
                 }
-                echo '<div class="user-delegation-user"><img src="'.$OUTPUT->pix_url('user', 'block_user_delegation').'" /> '.$u->firstname.' '.$u->lastname.' '.$groupnamesstr.'</div>';
+                echo '<div class="user-delegation-user">'.$OUTPUT->pix_icon('user', '', 'block_user_delegation').' '.$u->firstname.' '.$u->lastname.' '.$groupnamesstr.'</div>';
                 unset($allassignedusers[$u->id]);
             }
         } else {

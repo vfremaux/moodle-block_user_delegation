@@ -255,7 +255,7 @@ foreach ($columns as $column) {
         } else {
             $columnicon = $dir == 'ASC' ? 'down' : 'up';
         }
-        $columnicon = ' <img src="'.$OUTPUT->pix_url('/t/$columnicon').'" alt="" />';
+        $columnicon = ' '.$OUTPUT->pix_icon('/t/$columnicon', '');
     }
     $params = array('id' => $blockid, 'course' => $courseid, 'sort' => $column, 'dir' => $columndir);
     $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
@@ -472,14 +472,14 @@ if (!empty($userownedcourses)) {
     // Only if owned courses.
     $params = array('id' => $blockid, 'course' => $courseid);
     $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
-    $pixurl = $OUTPUT->pix_url('folders', 'block_user_delegation');
-    echo '<img src="'.$pixurl.'" /> <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
+    echo $OUTPUT->pix_icon('folders', '', 'block_user_delegation');
+    echo ' <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
     echo '| ';
 }
 
 // Print upload users link.
 if ($canaddbulk) {
-      echo '<img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" />';
+      echo $OUTPUT->pix_icon('upload', get_string('uploadusers', 'block_user_delegation'), 'block_user_delegation');
       $params = array('id' => $blockid, 'course' => $courseid);
       $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
       echo '<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
