@@ -26,14 +26,14 @@ class block_user_delegation_renderer extends plugin_renderer_base {
 
     function unassigned_users($users) {
 
-        $pixurl = $this->output->pix_url('user', 'block_user_delegation');
+        $pix = $this->output->pix_icon('user', '', 'block_user_delegation');
 
         $str = '';
         $str .= '<div class="user-delegation-course-cont">';
         $str .= '<div><h2>'.get_string('unassignedusers', 'block_user_delegation').'</h2></div>';
         $str .= '<div>';
         foreach ($myusers as $u) {
-            $str .= '<div class="user-delegation-user"><img src="'.$pixurl.'" /> '.$u->firstname.' '.$u->lastname.' </div>';
+            $str .= '<div class="user-delegation-user">'.$pix.' '.$u->firstname.' '.$u->lastname.' </div>';
         }
         $str .= '</div>';
         $str .= '</div>';
