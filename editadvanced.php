@@ -72,7 +72,7 @@ if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
 $theblock = block_instance('user_delegation', $instance);
 
 $params = array('course' => $course->id, 'blockid' => $blockid, 'id' => $id);
-$url = new moodle_url('/blocks/user_delegation/aditadvanced.php', $params);
+$url = new moodle_url('/blocks/user_delegation/editadvanced.php', $params);
 $PAGE->set_url($url);
 
 $PAGE->requires->jquery();
@@ -195,6 +195,8 @@ $userform = new user_editadvanced_form(new moodle_url($PAGE->url, array('returnt
 =======
 >>>>>>> MOODLE_34_STABLE
 
+$userform->disable_form_change_checker();
+
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
 }
@@ -231,7 +233,7 @@ if ($usernew = $userform->get_data()) {
         }
 
         // Assign the created user on behalf of the creator.
-        userdelegation::attach_user($USER->id, $newuser->id);
+        userdelegation::attach_user($USER->id, $usernew->id);
         $usercreated = true;
     } else {
         if (!$DB->update_record('user', $usernew)) {
@@ -305,16 +307,21 @@ if ($usernew = $userform->get_data()) {
     // Reload from db.
     $usernew = $DB->get_record('user', array('id' => $usernew->id));
 
-    // Trigger events.
+
+    // Trigger update/create event, after all fields are stored.
     if ($usercreated) {
-        events_trigger('user_created', $usernew);
+        \core\event\user_created::create_from_userid($usernew->id)->trigger();
     } else {
-        events_trigger('user_updated', $usernew);
+        \core\event\user_updated::create_from_userid($usernew->id)->trigger();
     }
 
     if ($user->id == $USER->id) {
         // Override old $USER session variable.
         foreach ((array)$usernew as $variable => $value) {
+            if ($variable === 'description' or $variable === 'password') {
+                // These are not set for security nad perf reasons.
+                continue;
+            }
             $USER->$variable = $value;
         }
         if (!empty($USER->newadminuser)) {
