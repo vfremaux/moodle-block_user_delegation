@@ -31,23 +31,17 @@ class user_editadvanced_form extends moodleform {
     public function definition() {
         global $USER, $CFG, $COURSE;
 
-        $mform =& $this->_form;
+        $mform = $this->_form;
         $editoroptions = null;
         $filemanageroptions = null;
+
+        if (!is_array($this->_customdata)) {
+            throw new coding_exception('invalid custom data for user_edit_form');
+        }
+        $editoroptions = $this->_customdata['editoroptions'];
+        $filemanageroptions = $this->_customdata['filemanageroptions'];
         $user = $this->_customdata['user'];
         $userid = $user->id;
-
-        if (is_array($this->_customdata)) {
-            if (array_key_exists('editoroptions', $this->_customdata)) {
-                $editoroptions = $this->_customdata['editoroptions'];
-            }
-            if (array_key_exists('filemanageroptions', $this->_customdata)) {
-                $filemanageroptions = $this->_customdata['filemanageroptions'];
-            }
-            if (array_key_exists('userid', $this->_customdata)) {
-                $userid = $this->_customdata['userid'];
-            }
-        }
 
         // Accessibility: "Required" is bad legend text.
         $strgeneral  = get_string('general');
@@ -55,8 +49,7 @@ class user_editadvanced_form extends moodleform {
 
         // Add some extra hidden fields.
         $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
-
+        $mform->setType('id', core_user::get_property_type('id'));
         $mform->addElement('hidden', 'course', $COURSE->id);
         $mform->setType('course', PARAM_INT);
 
@@ -64,8 +57,9 @@ class user_editadvanced_form extends moodleform {
         $mform->addElement('header', 'moodle', $strgeneral);
 
         $mform->addElement('text', 'username', get_string('username'), 'size="20"');
-        $mform->addRule('username', $strrequired, 'required', null, 'client');
+        $mform->addHelpButton('username', 'username', 'auth');
         $mform->setType('username', PARAM_RAW);
+        $mform->addRule('username', $strrequired, 'required', null, 'client');
   
         $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
         $mform->addHelpButton('suspended', 'suspended', 'auth');
@@ -101,19 +95,9 @@ class user_editadvanced_form extends moodleform {
 
         $mform =& $this->_form;
         if ($userid = $mform->getElementValue('id')) {
-            $user = $DB->get_record('user', array('id'=>$userid));
+            $user = $DB->get_record('user', array('id' => $userid));
         } else {
             $user = false;
-        }
-
-        // If language does not exist, use site default lang.
-        if ($langsel = $mform->getElementValue('lang')) {
-            $lang = reset($langsel);
-            // Check lang exists.
-            if (!get_string_manager()->translation_exists($lang, false)) {
-                $lang_el =& $mform->getElement('lang');
-                $lang_el->setValue($CFG->lang);
-            }
         }
 
         // User can not change own auth method.
@@ -155,7 +139,7 @@ class user_editadvanced_form extends moodleform {
                 $fs = get_file_storage();
                 $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
                 if (!empty($user->picture) && $hasuploadedpicture) {
-                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size'=>64));
+                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size' => 64));
                 } else {
                     $imagevalue = get_string('none');
                 }
@@ -174,6 +158,12 @@ class user_editadvanced_form extends moodleform {
         profile_definition_after_data($mform, $userid);
     }
 
+    /**
+     * Validate the form data.
+     * @param array $usernew
+     * @param array $files
+     * @return array|bool
+     */
     public function validation($usernew, $files) {
         global $CFG, $DB;
 
