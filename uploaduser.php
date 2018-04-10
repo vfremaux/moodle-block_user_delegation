@@ -111,12 +111,10 @@ $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myuser
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
 
-$ownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:owncourse', false);
-$coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
-if ($ownedcourses) {
-    foreach ($ownedcourses as $c) {
-        $coursesarr[$c->id] = $c->fullname;
-    }
+$coursesarr = null;
+if (block_user_delegation_supports_feature('users/enrol')) {
+    include_once($CFG->dirroot.'/blocks/user_delegation/pro/lib.php');
+    $coursearr = block_user_delegation_get_owned_courses();
 }
 
 $mform = new UploadUserForm($url, array('courses' => $coursesarr));
