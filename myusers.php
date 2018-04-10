@@ -29,6 +29,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/user/filters/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 
 $blockid      = required_param('id', PARAM_INT);
@@ -468,13 +469,16 @@ if ($cancreate) {
 
 $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', false);
 echo '<div class="userpage-toolbar">';
-if (!empty($userownedcourses)) {
-    // Only if owned courses.
-    $params = array('id' => $blockid, 'course' => $courseid);
-    $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
-    $pixurl = $OUTPUT->pix_url('folders', 'block_user_delegation');
-    echo '<img src="'.$pixurl.'" /> <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
-    echo '| ';
+
+if (block_user_delegation_supports_feature('users/enrol')) {
+    if (!empty($userownedcourses)) {
+        // Only if owned courses.
+        $params = array('id' => $blockid, 'course' => $courseid);
+        $coursesurl = new moodle_url('/blocks/user_delegation/pro/mycourses.php', $params);
+        $pixurl = $OUTPUT->pix_url('folders', 'block_user_delegation');
+        echo '<img src="'.$pixurl.'" /> <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
+        echo '| ';
+    }
 }
 
 // Print upload users link.
