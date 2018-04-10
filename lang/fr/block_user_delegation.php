@@ -55,6 +55,8 @@ $string['doseol'] = 'Fins de lignes DOS';
 $string['duplicatemails'] = 'Courriels en doublons';
 $string['edituser'] = 'Modification d\'un utilisateur';
 $string['edituseradvanced'] = 'Modification d\'un compte utilisateur (avancé)';
+$string['emulatecommunity'] = 'Emuler la version communautaire';
+$string['emulatecommunity_desc'] = 'Si elle est activée, cette option force le composant à fonctionner en version communautaire. Certaines fonctionnalités ne seront plus disponibles.';
 $string['enrolnotallowed'] = 'Vous n\'avez pas les autorisations pour gérer les inscriptions';
 $string['errornosuchuser'] = 'Cet utilisateur n\'existe pas';
 $string['errors'] = 'Erreurs&ensp;';
@@ -75,6 +77,10 @@ $string['institution'] = 'Institution';
 $string['invalidfieldname_areyousure'] = 'Nom de champ invalide {$a}';
 $string['invalidmails'] = 'Courriels invalides';
 $string['lastownerdeletes'] = 'Le dernier propriétaire supprime';
+$string['licenseprovider'] = 'Fournisseur version Pro';
+$string['licenseprovider_desc'] = 'Entrez la clef de votre distributeur.';
+$string['licensekey'] = 'Clef de license pro';
+$string['licensekey_desc'] = 'Entrez ici la clef de produit que vous avez reçu de votre distributeur.';
 $string['linenumber'] = 'Ligne ';
 $string['linenumber'] = 'Ligne {$a}';
 $string['loadingcoursegroups'] = 'Chargement des groupes du cours...';
@@ -103,6 +109,7 @@ $string['noteachers'] = 'Il n\'y a aucun enseignant.';
 $string['onlyalphanum'] = 'Seulement alphanumérique';
 $string['orcreate'] = ' ou créer le groupe ';
 $string['pipe'] = '|';
+$string['plugindist'] = 'Distribution du plugin';
 $string['pluginname'] = 'Gérer mes utilisateurs';
 $string['semicolon'] = ';';
 $string['skipthisline'] = 'Sauter cette ligne';
@@ -130,7 +137,6 @@ $string['uservalid'] = 'Utilisateur valide. Redirection...';
 $string['validatinguser'] = 'Utilisateur en cours.... Patientez';
 $string['viewmycourses'] = 'Voir mes cours';
 $string['viewmyusers'] = 'Voir mes utilisateurs';
-
 
 $string['uploadusers_help'] = '
 
@@ -172,3 +178,10 @@ $string['createpassword_help'] = '
 Si vous laissez Moodle générer les mots de passe, vous n\'aurez aucune connaissance de ceux-ci.
 Les mots de passe sont envoyés automatiquement aux utilisateur sur leur adresse de courriel déclarée dans le fichier. Elle doit donc être valide.
 ';
+
+$string['plugindist_desc'] = '<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
+correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugin existe et est distribuée
+sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
+<p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
+<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=fr">ActiveProLearn SAS</a></li>
+<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
