@@ -468,13 +468,16 @@ if ($cancreate) {
 
 $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:cancreateusers', false);
 echo '<div class="userpage-toolbar">';
-if (!empty($userownedcourses)) {
-    // Only if owned courses.
-    $params = array('id' => $blockid, 'course' => $courseid);
-    $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
-    echo $OUTPUT->pix_icon('folders', '', 'block_user_delegation');
-    echo ' <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
-    echo '| ';
+
+if (block_user_delegation_supports_feature('users/enrol')) {
+    if (!empty($userownedcourses)) {
+        // Only if owned courses.
+        $params = array('id' => $blockid, 'course' => $courseid);
+        $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
+        echo $OUTPUT->pix_icon('folders', '', 'block_user_delegation');
+        echo ' <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
+        echo '| ';
+    }
 }
 
 // Print upload users link.

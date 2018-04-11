@@ -24,6 +24,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 
 class block_user_delegation extends block_base {
@@ -82,7 +83,6 @@ class block_user_delegation extends block_base {
 
         $importusersstr = get_string('importusers', 'block_user_delegation');
         $viewmyusersstr = get_string('viewmyusers', 'block_user_delegation');
-        $viewmycoursesstr = get_string('viewmycourses', 'block_user_delegation');
 
         $menu = '<ul>';
         $params = array('id' => $this->instance->id, 'course' => $COURSE->id);
@@ -91,9 +91,12 @@ class block_user_delegation extends block_base {
 
         $userownedcourses = userdelegation::get_user_courses_bycap($USER->id, 'block/user_delegation:owncourse', false);
 
-        if (!empty($userownedcourses)) {
-            $linkurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
-            $menu .= ' <li><a href="'.$linkurl.'">'.$viewmycoursesstr.'</a></li>';
+        if (block_user_delegation_supports_feature('users/enrol')) {
+            if (!empty($userownedcourses)) {
+                $viewmycoursesstr = get_string('viewmycourses', 'block_user_delegation');
+                $linkurl = new moodle_url('/blocks/user_delegation/pro/mycourses.php', $params);
+                $menu .= ' <li><a href="'.$linkurl.'">'.$viewmycoursesstr.'</a></li>';
+            }
         }
 
         $menu .= '</ul>';

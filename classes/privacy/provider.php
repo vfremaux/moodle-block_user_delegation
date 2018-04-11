@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @package     block_user_delegation
- * @category    blocks
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace block_user_delegation\privacy;
 
-class block_user_delegation_renderer extends plugin_renderer_base {
+defined('MOODLE_INTERNAL') || die();
 
+class provider implements \core_privacy\local\metadata\null_provider {
 }

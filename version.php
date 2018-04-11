@@ -54,5 +54,10 @@ $plugin->maturity = MATURITY_RC;
 $plugin->release = '3.4.0 (Build 2017021300)';
 
 // Non moodle attributes.
+<<<<<<< HEAD
 $plugin->codeincrement = '3.4.0002';
+>>>>>>> MOODLE_34_STABLE
+=======
+$plugin->codeincrement = '3.4.0003';
+$plugin->privacy = 'dual_release';
 >>>>>>> MOODLE_34_STABLE
