@@ -26,38 +26,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-$plugin->version   = 2016122601;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2016120500;        // Requires this Moodle version.
-$plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_RC;
-$plugin->release = '3.2.0 (Build 2016122601)';
-
-// Non moodle attributes.
-$plugin->codeincrement = '3.2.0002';
-=======
 $plugin->version   = 2017021300;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2017050500;        // Requires this Moodle version.
+$plugin->requires  = 2018042700;        // Requires this Moodle version.
 $plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_RC;
-$plugin->release = '3.3.0 (Build 2017021300)';
+$plugin->release = '3.5.0 (Build 2017021300)';
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.3.0002';
->>>>>>> MOODLE_33_STABLE
-=======
-$plugin->version   = 2017021300;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2017110800;        // Requires this Moodle version.
-$plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_RC;
-$plugin->release = '3.4.0 (Build 2017021300)';
-
-// Non moodle attributes.
-<<<<<<< HEAD
-$plugin->codeincrement = '3.4.0002';
->>>>>>> MOODLE_34_STABLE
-=======
-$plugin->codeincrement = '3.4.0003';
-$plugin->privacy = 'dual_release';
->>>>>>> MOODLE_34_STABLE
+$plugin->codeincrement = '3.5.0003';
+$plugin->privacy = 'dualrelease';

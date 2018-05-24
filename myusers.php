@@ -29,6 +29,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/user/filters/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 
 $blockid      = required_param('id', PARAM_INT);
