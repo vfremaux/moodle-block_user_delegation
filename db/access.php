@@ -97,7 +97,7 @@ $capabilities = array(
     /*
      * Marks that current user is owning the course, thus 
      * able to get some reports on it and have strong delegated administration
-     * only Owned course can be assigned to using the user delegation forms. 
+     * only Owned course can be assigned to using the user delegation forms.
      */
     'block/user_delegation:owncourse' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,
