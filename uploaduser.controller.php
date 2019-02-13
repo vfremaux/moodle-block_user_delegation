@@ -53,7 +53,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     $text = $file->get_content();
 
     // Trim UTF-8 BOM.
-    $text = core_text::trim_utf8_bom($text);
+    $text = block_user_delegation::trim_utf8_bom($text);
 
     // Fix mac/dos newlines.
     $text = preg_replace('!\r\n?!',"\n", $text);
@@ -267,7 +267,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
                 } else if ($name == 'username') {
                     // Username (escape and force lowercase).
-                    $user->username = core_text::strtolower($value);
+
+                    $user->username = block_user_delegation::strtolower($value);
 
                 } else {
                     // Normal entry (escape only).

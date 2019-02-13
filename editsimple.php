@@ -113,18 +113,22 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // User interests separated by commas.
-$user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id);
 
-$ownedcourses = enrol_get_users_courses($USER->id);
+// $ownedcourses = enrol_get_users_courses($USER->id);
+$allcourses = $DB->get_records('course', array(), 'category,fullname', 'id,shortname,fullname,category');
 $coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
-if ($ownedcourses) {
-    foreach ($ownedcourses as $c) {
+$categorycache = array();
+if ($allcourses) {
+    foreach ($allcourses as $c) {
         $coursecontext = context_course::instance($c->id);
         if (!has_capability('block/user_delegation:owncourse', $coursecontext)) {
             continue;
         }
         $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
-        $coursesarr[$course->id] = get_string('assignto', 'block_user_delegation', $course->fullname);
+        if (!array_key_exists($c->category, $categorycache)) {
+            $categorycache[$c->category] = format_string($DB->get_field('course_categories', 'name', array('id' => $c->category)));
+        }
+        $coursesarr[$course->id] = "... / ".$categorycache[$c->category].' / '.$course->fullname;
     }
 }
 

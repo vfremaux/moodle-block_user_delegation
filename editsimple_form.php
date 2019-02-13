@@ -191,7 +191,7 @@ class user_editsimple_form extends moodleform {
                 $err['username'] = get_string('usernameexists');
             }
             // Check allowed characters.
-            if ($usernew->username !== core_text::strtolower($usernew->username)) {
+            if ($usernew->username !== block_user_delegation::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
                 if ($usernew->username !== clean_param($usernew->username, PARAM_USERNAME)) {
