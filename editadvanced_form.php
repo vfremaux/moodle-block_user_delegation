@@ -49,7 +49,8 @@ class user_editadvanced_form extends moodleform {
 
         // Add some extra hidden fields.
         $mform->addElement('hidden', 'id');
-        $mform->setType('id', core_user::get_property_type('id'));
+        $mform->setType('id', PARAM_INT);
+
         $mform->addElement('hidden', 'course', $COURSE->id);
         $mform->setType('course', PARAM_INT);
 
@@ -98,6 +99,16 @@ class user_editadvanced_form extends moodleform {
             $user = $DB->get_record('user', array('id' => $userid));
         } else {
             $user = false;
+        }
+
+        // If language does not exist, use site default lang.
+        if ($langsel = $mform->getElementValue('lang')) {
+            $lang = reset($langsel);
+            // Check lang exists.
+            if (!get_string_manager()->translation_exists($lang, false)) {
+                $lang_el =& $mform->getElement('lang');
+                $lang_el->setValue($CFG->lang);
+            }
         }
 
         // User can not change own auth method.

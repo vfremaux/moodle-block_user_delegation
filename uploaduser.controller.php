@@ -267,7 +267,6 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
                 } else if ($name == 'username') {
                     // Username (escape and force lowercase).
-
                     $user->username = block_user_delegation::strtolower($value);
 
                 } else {

@@ -266,13 +266,20 @@ if ($usernew = $userform->get_data()) {
     // Reload from db.
     $usernew = $DB->get_record('user', array('id' => $usernew->id));
 
+    // Trigger update/create event, after all fields are stored.
     if ($usercreated) {
+        block_user_delegation::trigger_event('user_created', $usernew);
     } else {
+        block_user_delegation::events_trigger('user_updated', $usernew);
     }
 
     if ($user->id == $USER->id) {
         // Override old $USER session variable.
         foreach ((array)$usernew as $variable => $value) {
+            if ($variable === 'description' or $variable === 'password') {
+                // These are not set for security and perf reasons.
+                continue;
+            }
             $USER->$variable = $value;
         }
         if (!empty($USER->newadminuser)) {

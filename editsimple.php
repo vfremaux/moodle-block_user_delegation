@@ -113,6 +113,7 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // User interests separated by commas.
+$user->interests = block_user_delegation::user_interests($id);
 
 // $ownedcourses = enrol_get_users_courses($USER->id);
 $allcourses = $DB->get_records('course', array(), 'category,fullname', 'id,shortname,fullname,category');

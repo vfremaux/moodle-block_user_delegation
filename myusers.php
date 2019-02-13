@@ -489,7 +489,6 @@ if (block_user_delegation_supports_feature('users/enrol')) {
 
 // Print upload users link.
 if ($canaddbulk) {
-
     echo $OUTPUT->pix_icon('upload', get_string('uploadusers', 'block_user_delegation'), 'block_user_delegation');
     $params = array('id' => $blockid, 'course' => $courseid);
     $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
