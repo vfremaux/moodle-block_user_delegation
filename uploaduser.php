@@ -133,7 +133,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading_with_help($struploaduser, 'uploadusers', 'block_user_delegation');
 
 echo '<div class="userpage-toolbar">';
-echo '<img src="'.$OUTPUT->pix_url('users', 'block_user_delegation').'" /> ';
+echo $OUTPUT->pix_icon('users', '', 'block_user_delegation');
 $usersreturnurl = new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid));
 echo '<a href="'.$usersreturnurl.'">'.get_string('myusers', 'block_user_delegation').'</a>';
 print '</div>';

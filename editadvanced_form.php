@@ -49,7 +49,8 @@ class user_editadvanced_form extends moodleform {
 
         // Add some extra hidden fields.
         $mform->addElement('hidden', 'id');
-        $mform->setType('id', core_user::get_property_type('id'));
+        $mform->setType('id', PARAM_INT);
+
         $mform->addElement('hidden', 'course', $COURSE->id);
         $mform->setType('course', PARAM_INT);
 
@@ -67,7 +68,7 @@ class user_editadvanced_form extends moodleform {
         if (!empty($CFG->passwordpolicy)){
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
- 
+
         $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"');
         $mform->addHelpButton('newpassword', 'newpassword');
         $mform->setType('newpassword', PARAM_RAW);
@@ -98,6 +99,16 @@ class user_editadvanced_form extends moodleform {
             $user = $DB->get_record('user', array('id' => $userid));
         } else {
             $user = false;
+        }
+
+        // If language does not exist, use site default lang.
+        if ($langsel = $mform->getElementValue('lang')) {
+            $lang = reset($langsel);
+            // Check lang exists.
+            if (!get_string_manager()->translation_exists($lang, false)) {
+                $lang_el =& $mform->getElement('lang');
+                $lang_el->setValue($CFG->lang);
+            }
         }
 
         // User can not change own auth method.
@@ -189,7 +200,7 @@ class user_editadvanced_form extends moodleform {
                 $err['username'] = get_string('usernameexists');
             }
             // Check allowed characters.
-            if ($usernew->username !== core_text::strtolower($usernew->username)) {
+            if ($usernew->username !== block_user_delegation::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
                 if ($usernew->username !== clean_param($usernew->username, PARAM_USERNAME)) {
@@ -215,4 +226,9 @@ class user_editadvanced_form extends moodleform {
             return $err;
         }
     }
+
+    public function disable_form_change_checker() {
+        $this->_form->disable_form_change_checker();
+    }
+
 }

@@ -26,6 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
+require_once($CFG->dirroot.'/user/lib.php');
+require_once($CFG->dirroot.'/local/moodlescript/lib.php');
 
 class block_user_delegation extends block_base {
 
@@ -177,5 +179,125 @@ class block_user_delegation extends block_base {
         }
 
         return false;
+    }
+
+    public static function process_bulk($data) {
+        global $USER, $COURSE;
+
+        $report = $str;
+        $config = get_config('block_user_delegation');
+        $script = @$config->prescript;
+
+        $i = 0;
+        foreach ($data->firstname as $fn) {
+
+            if (empty($fn) && empty($data->lastname[$i]) && empty($data->email[$i])) {
+                continue;
+            }
+
+            $user = new StdClass;
+            $user->firstname = $fn;
+            $user->lastname = $data->lastname[$i];
+            $user->email = $data->email[$i];
+
+            $user->username = self::compute_username($user, $olduser);
+
+            if (!$olduser) {
+                $user->id = user_create_user($user);
+
+                // Assign the created user on behalf of the creator.
+                userdelegation::attach_user($USER->id, $user->id);
+
+                // Check and record a user.
+                set_user_preference('create_password', 1, $user);
+                $olduser = $user;
+                $report .= get_string('userbulkcreated', 'block_user_delegation', $user);
+            } else {
+                $report .= get_string('userbulkexists', 'block_user_delegation', $olduser);
+            }
+
+            // Now we have a olduser, enrol it and group it with the manager.
+
+            $script .= "
+                ENROL username:{$olduser->username} INTO current AS shortname:student USING manual
+            ";
+            $i++;
+        }
+
+        // Enrol manager if we have some.
+
+        if (!empty($data->manager)) {
+            $script .= "
+                ENROL id:{$data->manager} INTO current AS shortname:manager USING manual
+            ";
+        }
+
+        $globalcontext = array('courseid' => $COURSE->id,
+                               'userid' => $USER->id);
+
+        $script = @$config->postscript;
+
+        // Make a script engine and run it.
+        $engine = local_moodlescript_get_engine($script);
+        $report = local_moodlescript_execute($engine, $globalcontext);
+
+        return $report;
+    }
+
+    /**
+     * Computes a free username or return a very potential old user record.
+     */
+    protected static function compute_username($user, &$moodleuser) {
+        global $DB;
+        static $antiloop = 0;
+
+        $username = core_text::strtolower($user->firstname)[0].core_text::strtolower($user->lastname);
+        $baseusername = $username;
+
+        $pass = false;
+        $index = 1;
+        $antiloop = 0;
+        while ((($olduser = $DB->get_record('user', array('username' => $username))) || $pass) && ($antiloop < 10)) {
+
+            if (!$olduser) {
+                break;
+            }
+
+            if (($olduser->deleted == 1) && ($olduser->email == $user->email)) {
+                $moodleuser = $olduser;
+                $pass = true;
+            }
+
+            if ($olduser->email != $user->email) {
+                $username = $baseusername.$index;
+                $index++;
+                echo "Trying with $username <br/>";
+            } else {
+                $moodleuser = $olduser;
+                $pass = true;
+            }
+
+            $antiloop++;
+        }
+
+        return $username;
+    }
+
+    public static function trim_utf8_bom($text) {
+     return core_text::trim_utf8_bom($text);
+    }
+
+    public static function strtolower($text) {
+        return core_text::strtolower($text);
+    }
+
+    public static function user_interests($id) {
+        return core_tag_tag::get_item_tags_array('core', 'user', $id);
+    }
+
+    public static function trigger_event($eventname, $usernew) {
+        $class = "\\core\\event\\".$eventname;
+        $func = $class."::create_from_userid";
+        $func($usernew->id)->trigger();
     }
 }
