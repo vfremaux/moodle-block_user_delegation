@@ -68,7 +68,7 @@ class user_editadvanced_form extends moodleform {
         if (!empty($CFG->passwordpolicy)){
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
- 
+
         $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"');
         $mform->addHelpButton('newpassword', 'newpassword');
         $mform->setType('newpassword', PARAM_RAW);
@@ -226,4 +226,9 @@ class user_editadvanced_form extends moodleform {
             return $err;
         }
     }
+
+    public function disable_form_change_checker() {
+        $this->_form->disable_form_change_checker();
+    }
+
 }
