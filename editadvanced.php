@@ -121,7 +121,7 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // User interests.
-$user->interests = block_user_delegation::user_interests($id)
+$user->interests = block_user_delegation::user_interests($id);
 
 if ($user->id !== -1) {
     $usercontext = context_user::instance($user->id);
