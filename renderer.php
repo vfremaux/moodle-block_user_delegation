@@ -24,4 +24,31 @@
 
 class block_user_delegation_renderer extends plugin_renderer_base {
 
+    public function upload_users_link($blockid) {
+        global $COURSE, $OUTPUT;
+
+        $str = '&nbsp;<img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" />';
+        $params = array('id' => $blockid, 'course' => $COURSE->id);
+        $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
+        $str .= '&nbsp;<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
+
+        return $str;
+    }
+
+    public function unassigned_users($users) {
+
+        $pixurl = $this->output->pix_url('user', 'block_user_delegation');
+
+        $str = '';
+        $str .= '<div class="user-delegation-course-cont">';
+        $str .= '<div><h2>'.get_string('unassignedusers', 'block_user_delegation').'</h2></div>';
+        $str .= '<div>';
+        foreach ($myusers as $u) {
+            $str .= '<div class="user-delegation-user"><img src="'.$pixurl.'" /> '.$u->firstname.' '.$u->lastname.' </div>';
+        }
+        $str .= '</div>';
+        $str .= '</div>';
+
+        return $str;
+    }
 }

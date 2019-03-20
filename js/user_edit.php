@@ -72,7 +72,7 @@ $(document).ready(function() {
                 $('#exisiting_users').append('<div>Opps, it looks like that the user is already exists in our database, please choose one of the following:</div>' );
                 $('#exisiting_users').append(
                     '<div class="info-exist-user-cont">'+
-                    '<img src="<?php echo $OUTPUT->pix_url('user', 'block_user_delegation') ?>" /> ' +
+                    '<?php echo $OUTPUT->pix_icon('user', '', 'block_user_delegation') ?> ' +
                     obj.firstname+" "+obj.lastname+
                     '&nbsp;&nbsp;&nbsp;&nbsp;'+
                     '<a class="addtoaccount" uid="'+obj.id+'" href="#">+ <?php print_string('attachtome', 'block_user_delegation') ?></a>'+

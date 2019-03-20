@@ -1,6 +1,6 @@
 
 
-define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, str) {
+define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
     var userdelegationpro = {
 
@@ -13,7 +13,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
 
         check_product_key: function() {
 
-            that = $(this);
+            var that = $(this);
 
             var productkey = that.val().replace(/-/g, '');
             var payload = productkey.substr(0, 14);
@@ -27,7 +27,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
             var waiticon = ' <img src="' + cfg.wwwroot + '/pix/i/ajaxloader.gif' + '">';
 
             if (crc == calculated) {
-                url = cfg.wwwroot + '/blocks/user_delegation/pro/ajax/services.php?';
+                var url = cfg.wwwroot + '/blocks/user_delegation/pro/ajax/services.php?';
                 url += 'what=license';
                 url += '&service=check';
                 url += '&customerkey=' + that.val();
@@ -62,7 +62,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
             var chars = keypayload.split('');
             var crc = 0;
 
-            for (ch in chars) {
+            for (var ch in chars) {
                 var ord = chars[ch].charCodeAt(0);
                 crc += ord;
             }
@@ -74,4 +74,4 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
     };
 
     return userdelegationpro;
-})
+});
