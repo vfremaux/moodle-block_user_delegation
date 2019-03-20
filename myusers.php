@@ -33,7 +33,7 @@ require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 
 $blockid      = required_param('id', PARAM_INT);
-$courseid     = optional_param('course', 1, PARAM_INT);
+$courseid     = optional_param('course', SITEID, PARAM_INT);
 $delete       = optional_param('delete', 0, PARAM_INT);
 $confirm      = optional_param('confirm', '', PARAM_ALPHANUM);   // Md5 confirmation hash.
 $confirmuser  = optional_param('confirmuser', 0, PARAM_INT);
@@ -51,7 +51,7 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 
 // Security.
 
-require_login();
+require_login($course);
 $usercontext = context_user::instance($USER->id);
 $PAGE->set_context($usercontext);
 
@@ -105,7 +105,12 @@ $PAGE->set_title($SITE->shortname);
 $PAGE->set_heading($SITE->shortname);
 $PAGE->set_pagelayout('admin');
 
-
+if (block_user_delegation_supports_feature('emulate/community') == 'pro') {
+    require_once($CFG->dirroot.'/blocks/user_delegation/pro/renderer.php');
+    $renderer = new block_user_delegation_pro_renderer($PAGE, 'html');
+} else {
+    $renderer = $PAGE->get_renderer('block_user_delegation');
+}
 // Start page content.
 
 $config = get_config('block_user_delegation');
@@ -121,7 +126,7 @@ echo $OUTPUT->header();
 if ($confirmuser and confirm_sesskey() && $cancreate) {
 
     if (!$user = $DB->get_record('user', array('id' => $confirmuser))) {
-        print_error('errornouser', 'block_usr_delegation');
+        print_error('errornouser', 'block_user_delegation');
     }
 
     $auth = get_auth_plugin($user->auth);
@@ -138,6 +143,7 @@ if ($confirmuser and confirm_sesskey() && $cancreate) {
     if (!$user = $DB->get_record('user', array('id' => $delete))) {
         print_error('errornouser', 'block_user_delegation');
     }
+
     // You'll never be able to delete administrators.
     if (is_primary_admin($user->id)) {
         print_error('errorprimaryadmindeletion', 'block_user_delegation');
@@ -474,20 +480,26 @@ if (block_user_delegation_supports_feature('users/enrol')) {
     if (!empty($userownedcourses)) {
         // Only if owned courses.
         $params = array('id' => $blockid, 'course' => $courseid);
-        $coursesurl = new moodle_url('/blocks/user_delegation/mycourses.php', $params);
+        $coursesurl = new moodle_url('/blocks/user_delegation/pro/mycourses.php', $params);
         echo $OUTPUT->pix_icon('folders', '', 'block_user_delegation');
         echo ' <a href="'.$coursesurl.'">'.get_string('mycourses').'</a>';
-        echo '| ';
+        echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 }
 
 // Print upload users link.
 if ($canaddbulk) {
-      echo $OUTPUT->pix_icon('upload', get_string('uploadusers', 'block_user_delegation'), 'block_user_delegation');
-      $params = array('id' => $blockid, 'course' => $courseid);
-      $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
-      echo '<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
+    echo $OUTPUT->pix_icon('upload', get_string('uploadusers', 'block_user_delegation'), 'block_user_delegation');
+    $params = array('id' => $blockid, 'course' => $courseid);
+    $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
+    echo '<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
+    echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 }
+
+if (block_user_delegation_supports_feature('users/addbulk') && $canaddbulk) {
+    echo $renderer->addbulk_link($blockid);
+}
+
 echo '</div>';
 
 // Print user table.
