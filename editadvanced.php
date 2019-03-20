@@ -79,6 +79,7 @@ $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
 if ($id == -1) {
     // Creating new user.
+    require_capability('block/user_delegation:cancreateusers', $coursecontext);
     $user = new stdClass();
     $user->id = -1;
     $user->auth = 'manual';
@@ -120,7 +121,7 @@ useredit_load_preferences($user);
 profile_load_data($user);
 
 // User interests.
-$user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id); // formslib uses htmlentities itself
+$user->interests = block_user_delegation::user_interests($id);
 
 if ($user->id !== -1) {
     $usercontext = context_user::instance($user->id);
@@ -265,19 +266,18 @@ if ($usernew = $userform->get_data()) {
     // Reload from db.
     $usernew = $DB->get_record('user', array('id' => $usernew->id));
 
-
     // Trigger update/create event, after all fields are stored.
     if ($usercreated) {
-        \core\event\user_created::create_from_userid($usernew->id)->trigger();
+        block_user_delegation::trigger_event('user_created', $usernew);
     } else {
-        \core\event\user_updated::create_from_userid($usernew->id)->trigger();
+        block_user_delegation::events_trigger('user_updated', $usernew);
     }
 
     if ($user->id == $USER->id) {
         // Override old $USER session variable.
         foreach ((array)$usernew as $variable => $value) {
             if ($variable === 'description' or $variable === 'password') {
-                // These are not set for security nad perf reasons.
+                // These are not set for security and perf reasons.
                 continue;
             }
             $USER->$variable = $value;

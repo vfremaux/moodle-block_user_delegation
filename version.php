@@ -34,4 +34,4 @@ $plugin->release = '3.4.0 (Build 2017021300)';
 
 // Non moodle attributes.
 $plugin->codeincrement = '3.4.0003';
-$plugin->privacy = 'dual_release';
+$plugin->privacy = 'dualrelease';
