@@ -1,6 +1,6 @@
 <?php
 //
-// Capability definitions for the block myCourses.
+// Capability definitions for the block User Delegation.
 //
 // The capabilities are loaded into the database table when the module is
 // installed or updated. Whenever the capability definitions are updated,
