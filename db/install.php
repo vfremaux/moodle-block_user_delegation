@@ -69,7 +69,7 @@ function xmldb_block_user_delegation_install() {
             $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
             foreach ($overridetargetrole as $t) {
-                allow_override($roleid, $t);
+                core_role_set_assign_allowed($roleid, $t);
             }
 
             set_config('block_user_delegation_co_role', $shortname);
@@ -102,7 +102,7 @@ function xmldb_block_user_delegation_install() {
         $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
         foreach ($overridetargetrole as $t) {
-            allow_override($role->id, $t);
+            core_role_set_assign_allowed($role->id, $t);
         }
         set_role_contextlevels($roleid, $contextlevels);
     }
