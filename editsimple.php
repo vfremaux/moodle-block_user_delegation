@@ -31,8 +31,6 @@ require_once($CFG->dirroot.'/user/editlib.php');
 require_once($CFG->dirroot.'/user/lib.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
 
-$PAGE->https_required();
-
 $id = optional_param('id', -1, PARAM_INT);    // Edited user id; -1 if creating new user.
 $blockid = required_param('blockid', PARAM_INT);    // The block instance id.
 $courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
