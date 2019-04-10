@@ -34,5 +34,5 @@ $plugin->release = '3.5.0 (Build 2019032500)';
 $plugin->dependencies = array('local_moodlescript' => 2017082401);
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.5.0003';
+$plugin->codeincrement = '3.5.0004';
 $plugin->privacy = 'dualrelease';

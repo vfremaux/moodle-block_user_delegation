@@ -114,6 +114,9 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'oldusername' => 1
     );
 
+    $metas = array(
+            'profile_field_.*');
+
     // Default values for optional fields (only for  NOT null fields without DEFAULT in db schema).
     $optionalDefaults = array(
         'idnumber' => '',
@@ -173,13 +176,23 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     foreach ($header as $i => $h) {
         $h = trim($h); $header[$i] = $h; // Remove whitespace.
 
-        if (!(array_key_exists($h, $requiredFields)) && !(array_key_exists($h, $optionalFields))) {
-            echo $OUTPUT->notification(get_string('invalidfieldname_areyousure', 'block_user_delegation', $h));
-            print_error('invalidfieldname_areyousure', 'block_user_delegation', '', $h);
+        $ismeta = false;
+        foreach ($metas as $meta) {
+            if (preg_match("/{$meta}/", $h)) {
+                $ismeta = true;
+                break;
+            }
         }
-        if (array_key_exists($h, $requiredFields)) {
-            // Release required field as we know it is present in file.
-            $requiredFields[$h] = 0;
+
+        if (!$ismeta) {
+            if (!(array_key_exists($h, $requiredFields)) && !(array_key_exists($h, $optionalFields))) {
+                echo $OUTPUT->notification(get_string('invalidfieldname_areyousure', 'block_user_delegation', $h));
+                print_error('invalidfieldname_areyousure', 'block_user_delegation', '', $h);
+            }
+            if (array_key_exists($h, $requiredFields)) {
+                // Release required field as we know it is present in file.
+                $requiredFields[$h] = 0;
+            }
         }
     }
 
@@ -273,7 +286,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     // Normal entry (escape only).
                     if (!in_array($name, array_keys($requiredFields)) &&
                             !in_array($name, array_keys($optionalFields)) &&
-                                    !userdelegation::pattern_match($name, $patterns)) {
+                                    !userdelegation::pattern_match($name, $metas)) {
                         $params = array('sesskey' => sesskey(), 'id' => $blockid, 'courseid' => $courseid);
                         $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
                         print_error('unexpectedfield', 'block_userdelegation', $name, $returnurl);
@@ -375,10 +388,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
                     if (empty($user->password) && $data->createpassword) {
                         // Passwords will be created and sent out on cron.
-                        $DB->insert_record('user_preferences', array( userid => $user->id,
+                        $DB->insert_record('user_preferences', array('userid' => $user->id,
                                     'name'   => 'create_password',
                                     'value'  => 1));
-                        $DB->insert_record('user_preferences', array( userid => $user->id,
+                        $DB->insert_record('user_preferences', array('userid' => $user->id,
                                     'name'   => 'auth_forcepasswordchange',
                                     'value'  => 1));
                     }
