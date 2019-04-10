@@ -27,7 +27,9 @@ require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/user/lib.php');
-require_once($CFG->dirroot.'/local/moodlescript/lib.php');
+if (is_dir($CFG->dirroot.'/local/moodlescript')) {
+    require_once($CFG->dirroot.'/local/moodlescript/lib.php');
+}
 
 class block_user_delegation extends block_base {
 
@@ -182,7 +184,7 @@ class block_user_delegation extends block_base {
     }
 
     public static function process_bulk($data) {
-        global $USER, $COURSE;
+        global $USER, $COURSE, $CFG;
 
         $report = $str;
         $config = get_config('block_user_delegation');
@@ -235,11 +237,15 @@ class block_user_delegation extends block_base {
         $globalcontext = array('courseid' => $COURSE->id,
                                'userid' => $USER->id);
 
-        $script = @$config->postscript;
+        $report = '';
+        if (is_dir($CFG->dirroot.'/local/moodlescript')) {
 
-        // Make a script engine and run it.
-        $engine = local_moodlescript_get_engine($script);
-        $report = local_moodlescript_execute($engine, $globalcontext);
+            $script = @$config->postscript;
+
+            // Make a script engine and run it.
+            $engine = local_moodlescript_get_engine($script);
+            $report = local_moodlescript_execute($engine, $globalcontext);
+        }
 
         return $report;
     }
