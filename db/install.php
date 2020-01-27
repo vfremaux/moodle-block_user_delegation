@@ -42,6 +42,8 @@ function xmldb_block_user_delegation_install() {
      */
     $contextlevels = array(CONTEXT_COURSECAT, CONTEXT_COURSE, CONTEXT_USER);
 
+    update_capabilities('block_user_delegation');
+
     if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
             // Boostrap courseowner to the same as editingteacher.
@@ -61,7 +63,7 @@ function xmldb_block_user_delegation_install() {
             $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
             foreach ($assigntargetrole as $t) {
-                allow_assign($roleid, $t);
+                core_role_set_assign_allowed($roleid, $t);
             }
 
             $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
@@ -69,7 +71,12 @@ function xmldb_block_user_delegation_install() {
             $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
             foreach ($overridetargetrole as $t) {
-                core_role_set_assign_allowed($roleid, $t);
+                try {
+                    core_role_set_assign_allowed($roleid, $t);
+                } catch (Exception $e) {
+                    // Ignore fail to rewrite.
+                    assert(1);
+                }
             }
 
             set_config('block_user_delegation_co_role', $shortname);
@@ -94,7 +101,7 @@ function xmldb_block_user_delegation_install() {
         $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
         foreach ($assigntargetrole as $t) {
-            allow_assign($role->id, $t);
+            core_role_set_assign_allowed($role->id, $t);
         }
 
         $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));

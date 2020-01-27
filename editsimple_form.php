@@ -130,6 +130,8 @@ class user_editsimple_form extends moodleform {
             $btnstring = get_string('update');
         }
 
+        $mform->disable_form_change_checker();
+
         $this->add_action_buttons(true, $btnstring);
     }
 
