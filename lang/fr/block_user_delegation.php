@@ -35,6 +35,10 @@ $string['badblockid'] = 'ID de bloc invalide';
 $string['blockname'] = 'Administration déléguée des utilisateurs';
 $string['changeenrolment'] = 'Modifier les inscriptions';
 $string['colon'] = ':';
+$string['cohort'] = 'Nom de cohorte';
+$string['cohortid'] = 'Identifiant de cohorte';
+$string['cohort_help'] = 'Si un nom de cohorte est mentionné, l\'utilisateur créé y sera ajouté si elle existe. Une cohorte de ce nom sera ajoutée si elle n\'existe pas. Seule les cohortes système sont considérées.';
+$string['cohortid_help'] = 'Vous pouvez préciser une cohorte uniquement par son identifiant pour ajouter l\'utilisateur dans la cohorte, et si elle existe. Si la cohorte doit être créée (avec un nom donné) alors ce champ fournira l\'identifiant de cohorte associé.';
 $string['comma'] = ',';
 $string['configallowenrol'] = 'Autoriser les inscriptions par la délégation';
 $string['configenrolduration'] = 'Durée d\'inscription (en jours, vide pour pas de limite)';
@@ -165,7 +169,7 @@ Le champ "email" peut contenir le code d\'absence d\'adresse de courriel (NOMAIL
 
 <p><b>Champs optionnels</b> : tous ces champs sont optionnels. Les valeurs éventuellement précisées dans le fichier seront utilisées. Sinon, c\'est la valeur par défaut pour ce champ qui sera utilisée.</p>
 
-<p><code>city</code> pour la ville (en majuscules), <code>institution</code>, <code>department</code>, <code>country</code> (FR, UK), <code>lang>/code> (fr,en,es,...) <!-- auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description, <!-- mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
+<p><code>city</code> pour la ville (en majuscules), <code>institution</code>, <code>department</code>, <code>country</code> (FR, UK), <code>lang>/code> (fr,en,es,...) <!-- auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description <!--, mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
 
 <p><b>Champs de profil personnalisés</b> : optionnel, xxxxx doit être remplacé par le nom abrégé du champ personnalisé. L\'administrateur de Moodle devrait avoir publié à votre intention des instructions concernant 
 les champs supplémentaires supportés par cette plate-forme.</p>
@@ -180,6 +184,13 @@ ni supprimer un utilisateur partagé avec au moins un autre tuteur.</p>
 <p><b>Champs d\'inscription</b> : Ce mode d\'importation ne support ni les champs d\'inscription ni les champs relatifs aux roles (inscription étudiante par défaut).</p>
 
 <p>Pour les données booléennes, utilisez 0 pour faux et 1 pour vrai.</p>
+
+<p><b>Champs de cohortes</b>: Ces champs permettent de lier des utilisateurs à une cohorte en créant la cohorte si elle n\'existe pas.</p>
+
+<ul>
+<li><code>cohort</code>: Le nom de la cohorte où ajouter l\'utilisateur. Si le nom n\'ecxiste pas une cohorte sera créée. Seules les cohortes système sont considérées.</li>
+<li><code>cohortid</code>: Un identifiant de cohorte pour la création de la cohorte. Si la cohorte existe, vous pouvez utiliser cet identifiant seul pour trouver la cohorte à lier.</li>
+</ul>
 ';
 
 $string['createpassword_help'] = '

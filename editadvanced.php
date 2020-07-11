@@ -25,6 +25,7 @@
 require('../../config.php');
 require_once($CFG->libdir.'/gdlib.php');
 require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/editadvanced_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
@@ -155,11 +156,15 @@ $filemanageroptions = array('maxbytes'       => $CFG->maxbytes,
                              'accepted_types' => 'web_image');
 file_prepare_draft_area($draftitemid, $filemanagercontext->id, 'user', 'newicon', 0, $filemanageroptions);
 $user->imagefile = $draftitemid;
+
+$coursesarr = user_delegation_get_owned_courses();
+
 // Create form.
 $userform = new user_editadvanced_form(new moodle_url($PAGE->url, array('returnto' => $returnto)), array(
     'editoroptions' => $editoroptions,
     'filemanageroptions' => $filemanageroptions,
-    'user' => $user));
+    'user' => $user,
+    'courses' => $coursesarr));
 
 $userform->disable_form_change_checker();
 
@@ -174,6 +179,17 @@ if ($usernew = $userform->get_data()) {
         unset($usernew->auth); // Can not change/remove.
     } else {
         $authplugin = get_auth_plugin($usernew->auth);
+    }
+
+    // Pass to a cohort arr eventual cohort binding values.
+    $cohortarr = [];
+    if (!empty($usernew->cohort)) {
+        $cohortarr['cohort'] = $usernew->cohort;
+        unset($usernew->cohort);
+    }
+    if (!empty($usernew->cohortid)) {
+        $cohortarr['cohortid'] = $usernew->cohortid;
+        unset($usernew->cohortid);
     }
 
     $usernew->username     = trim($usernew->username);
@@ -193,11 +209,12 @@ if ($usernew = $userform->get_data()) {
 
         // Assign the created user on behalf of the creator.
         userdelegation::attach_user($USER->id, $usernew->id);
+
+        userdelegation::bind_cohort($cohortarr, $usernew, $log);
+
         $usercreated = true;
     } else {
-        if (!$DB->update_record('user', $usernew)) {
-            error('Error updating user record');
-        }
+        $DB->update_record('user', $usernew);
 
         // Pass a true $userold here.
         if (! $authplugin->user_update($user, $userform->get_data(false))) {
@@ -217,6 +234,8 @@ if ($usernew = $userform->get_data()) {
             }
         }
         $usercreated = false;
+
+        userdelegation::bind_cohort($cohortarr, $usernew, $log);
     }
 
     // Update preferences.

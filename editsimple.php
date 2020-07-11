@@ -25,6 +25,7 @@
 require('../../config.php');
 require_once($CFG->libdir.'/gdlib.php');
 require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
@@ -113,26 +114,10 @@ profile_load_data($user);
 // User interests separated by commas.
 $user->interests = block_user_delegation::user_interests($id);
 
-// $ownedcourses = enrol_get_users_courses($USER->id);
-$allcourses = $DB->get_records('course', array(), 'category,fullname', 'id,shortname,fullname,category');
-$coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
-$categorycache = array();
-if ($allcourses) {
-    foreach ($allcourses as $c) {
-        $coursecontext = context_course::instance($c->id);
-        if (!has_capability('block/user_delegation:owncourse', $coursecontext)) {
-            continue;
-        }
-        $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
-        if (!array_key_exists($c->category, $categorycache)) {
-            $categorycache[$c->category] = format_string($DB->get_field('course_categories', 'name', array('id' => $c->category)));
-        }
-        $coursesarr[$course->id] = "... / ".$categorycache[$c->category].' / '.$course->fullname;
-    }
-}
+$coursesarr = user_delegation_get_owned_courses();
 
 // Create form.
-$userform = new user_editsimple_form($url, array('userid' => $user->id, 'courses' => $coursesarr));
+$userform = new user_editsimple_form($url, array('user' => $user, 'courses' => $coursesarr));
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
