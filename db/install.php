@@ -27,6 +27,10 @@ defined('MOODLE_INTERNAL') || die();
  * Standard post install handler.
  */
 function xmldb_block_user_delegation_install() {
+    assert(1);
+}
+
+function xmldb_block_user_delegation_late_install() {
     global $DB;
 
     $shortname = 'courseowner';
@@ -41,8 +45,6 @@ function xmldb_block_user_delegation_install() {
      * and complete the role if exists.
      */
     $contextlevels = array(CONTEXT_COURSECAT, CONTEXT_COURSE, CONTEXT_USER);
-
-    update_capabilities('block_user_delegation');
 
     if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
@@ -63,7 +65,7 @@ function xmldb_block_user_delegation_install() {
             $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
             foreach ($assigntargetrole as $t) {
-                core_role_set_assign_allowed($roleid, $t);
+                allow_assign($roleid, $t);
             }
 
             $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
@@ -101,7 +103,7 @@ function xmldb_block_user_delegation_install() {
         $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
         foreach ($assigntargetrole as $t) {
-            core_role_set_assign_allowed($role->id, $t);
+            allow_assign($role->id, $t);
         }
 
         $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));

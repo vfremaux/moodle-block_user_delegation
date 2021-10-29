@@ -23,7 +23,7 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/blocks/userdelegation/editsimple_form.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
 
 class user_editadvanced_form extends user_editsimple_form {
 

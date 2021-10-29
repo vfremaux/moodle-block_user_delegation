@@ -65,8 +65,6 @@ $string['doseol'] = 'DOS Line endings';
 $string['duplicatemails'] = 'Duplicate mails count';
 $string['edituser'] = 'Edit User';
 $string['edituseradvanced'] = 'Edit User (advanced mode)';
-$string['emulatecommunity'] = 'Emulate community version';
-$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version. This might loose features !';
 $string['enrolnotallowed'] = 'Enrol not allowed';
 $string['errorcreateuser'] = 'Error creating user record';
 $string['errorinvalidaccess'] = 'Invalid access parameter.';
@@ -98,10 +96,6 @@ $string['institution'] = 'Institution';
 $string['invalidfieldname_areyousure'] = 'Invalid field name {$a}';
 $string['invalidmails'] = 'Invalid mails count';
 $string['lastownerdeletes'] = 'Last owner deletes';
-$string['licenseprovider'] = 'Pro License provider';
-$string['licenseprovider_desc'] = 'Input here your provider key';
-$string['licensekey'] = 'Pro license key';
-$string['licensekey_desc'] = 'Input here the product license key you got from your provider';
 $string['linenumber'] = 'Line {$a}';
 $string['loadingcoursegroups'] = 'Loading course groups...';
 $string['loadinggroups'] = 'Loading groups...  please wait';
@@ -127,7 +121,6 @@ $string['nostudents'] = 'There are currently no students.';
 $string['noteachers'] = 'There are currently no teachers.';
 $string['onlyalphanum'] = 'Alphanum only';
 $string['pipe'] = '|';
-$string['plugindist'] = 'Plugin distribution';
 $string['pluginname'] = 'User Administration Subdelegation';
 $string['semicolon'] = ';';
 $string['skipthisline'] = 'Skip this line';
@@ -211,8 +204,4 @@ If you choose to let Moodle create passwords, you will NOT have communication of
 Moodle will send directly passwords to users on base of the declared email in the import file. User emails thus need to be valid emails.
 ';
 
-$string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
-core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
-and improvement effort.</p>
-<p>Please contact one of our distributors to get "Pro" version support.</p>
-<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li></ul>';
+include(__DIR__.'/pro_additional_strings.php');
