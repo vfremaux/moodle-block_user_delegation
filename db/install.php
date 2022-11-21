@@ -27,6 +27,10 @@ defined('MOODLE_INTERNAL') || die();
  * Standard post install handler.
  */
 function xmldb_block_user_delegation_install() {
+    assert(1);
+}
+
+function xmldb_block_user_delegation_late_install() {
     global $DB;
 
     $shortname = 'courseowner';
@@ -69,7 +73,12 @@ function xmldb_block_user_delegation_install() {
             $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
 
             foreach ($overridetargetrole as $t) {
-                core_role_set_assign_allowed($roleid, $t);
+                try {
+                    core_role_set_assign_allowed($roleid, $t);
+                } catch (Exception $e) {
+                    // Ignore fail to rewrite.
+                    assert(1);
+                }
             }
 
             set_config('block_user_delegation_co_role', $shortname);

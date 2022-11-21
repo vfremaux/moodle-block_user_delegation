@@ -23,9 +23,9 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/lib/formslib.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
 
-class user_editadvanced_form extends moodleform {
+class user_editadvanced_form extends user_editsimple_form {
 
     // Define the form.
     public function definition() {
@@ -61,7 +61,7 @@ class user_editadvanced_form extends moodleform {
         $mform->addHelpButton('username', 'username', 'auth');
         $mform->setType('username', PARAM_RAW);
         $mform->addRule('username', $strrequired, 'required', null, 'client');
-  
+
         $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
         $mform->addHelpButton('suspended', 'suspended', 'auth');
 
@@ -79,13 +79,24 @@ class user_editadvanced_form extends moodleform {
         // Shared fields.
         useredit_shared_definition($mform, $editoroptions, $filemanageroptions, $user);
 
+        $mform->addElement('text', 'cohort', get_string('cohort'), 'size="40"');
+        $mform->addHelpButton('cohort', 'cohort', 'block_userdelegation');
+        $mform->setType('cohort', PARAM_TEXT);
+
+        $mform->addElement('text', 'cohortid', get_string('cohortidnumber', 'block_usergation'), 'size="40"');
+        $mform->addHelpButton('cohortid', 'cohortid', 'block_userdelegation');
+        $mform->setType('cohortid', PARAM_TEXT);
+
         // Next the customisable profile fields.
         profile_definition($mform, $userid);
 
-        if ($userid == -1) {
+        if ($this->_customdata['userid'] == -1) {
             $btnstring = get_string('createuser');
+            if (!empty($this->_customdata['courses'])) {
+                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
+            }
         } else {
-            $btnstring = get_string('updatemyprofile');
+            $btnstring = get_string('update');
         }
 
         $this->add_action_buttons(false, $btnstring);

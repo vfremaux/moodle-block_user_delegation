@@ -35,6 +35,7 @@ class user_editsimple_form extends moodleform {
         $editoroptions = null;
         $filemanageroptions = null;
 
+        $user = null;
         if (is_array($this->_customdata)) {
             if (array_key_exists('editoroptions', $this->_customdata)) {
                 $editoroptions = $this->_customdata['editoroptions'];
@@ -42,8 +43,8 @@ class user_editsimple_form extends moodleform {
             if (array_key_exists('filemanageroptions', $this->_customdata)) {
                 $filemanageroptions = $this->_customdata['filemanageroptions'];
             }
-            if (array_key_exists('userid', $this->_customdata)) {
-                $userid = $this->_customdata['userid'];
+            if (array_key_exists('user', $this->_customdata)) {
+                $user = $this->_customdata['user'];
             }
         }
 
@@ -64,9 +65,11 @@ class user_editsimple_form extends moodleform {
         $mform->addRule('username', $strrequired, 'required', null, 'client');
         $mform->setType('username', PARAM_RAW);
 
-        if (!userdelegation::has_other_owners($this->_customdata['userid'])) {
-            $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
-            $mform->addHelpButton('suspended', 'suspended', 'auth');
+        if (is_object($this->_customdata['user'])) {
+            if (!userdelegation::has_other_owners($this->_customdata['user']->id)) {
+                $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
+                $mform->addHelpButton('suspended', 'suspended', 'auth');
+            }
         }
 
         if (!empty($CFG->passwordpolicy)) {
@@ -79,6 +82,30 @@ class user_editsimple_form extends moodleform {
 
         $mform->addElement('advcheckbox', 'preference_auth_forcepasswordchange', get_string('forcepasswordchange'));
         $mform->addHelpButton('preference_auth_forcepasswordchange', 'forcepasswordchange');
+
+        // Shared fields.
+        $this->useredit_shared_fields($mform, $editoroptions, $filemanageroptions);
+
+        // Next the customisable profile fields.
+
+        if (is_null($this->_customdata['user'])) {
+            $btnstring = get_string('createuser');
+            if (!empty($this->_customdata['courses'])) {
+                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
+            }
+        } else {
+            $btnstring = get_string('update');
+        }
+
+        $mform->disable_form_change_checker();
+
+        $this->add_action_buttons(true, $btnstring);
+    }
+
+    protected function useredit_shared_fields($mform, $editoroptions, $filemanageroptions) {
+        global $CFG;
+
+        $strrequired = get_string('required');
 
         // Shared fields.
         $mform->addElement('text', 'firstname', get_string('firstname'));
@@ -118,19 +145,6 @@ class user_editsimple_form extends moodleform {
 
         $mform->addElement('hidden', 'lang', $CFG->lang);
         $mform->setType('lang', PARAM_TEXT);
-
-        // Next the customisable profile fields.
-
-        if ($this->_customdata['userid'] == -1) {
-            $btnstring = get_string('createuser');
-            if (!empty($this->_customdata['courses'])) {
-                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
-            }
-        } else {
-            $btnstring = get_string('update');
-        }
-
-        $this->add_action_buttons(true, $btnstring);
     }
 
     public function definition_after_data() {

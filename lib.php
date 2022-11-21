@@ -18,10 +18,13 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  */
-function block_user_delegation_supports_feature($feature) {
+function block_user_delegation_supports_feature($feature = null, $getsupported = false) {
+    global $CFG;
     static $supports;
 
-    $config = get_config('block_user_delegation');
+    if (!during_initial_install()) {
+        $config = get_config('block_user_delegation');
+    }
 
     if (!isset($supports)) {
         $supports = array(
@@ -32,6 +35,10 @@ function block_user_delegation_supports_feature($feature) {
                 'users' => array('create', 'bulkcreate'),
             ),
         );
+    }
+
+    if ($getsupported) {
+        return $supports;
     }
 
     // Check existance of the 'pro' dir in plugin.
@@ -46,6 +53,11 @@ function block_user_delegation_supports_feature($feature) {
         }
     } else {
         $versionkey = 'community';
+    }
+
+    if (empty($feature)) {
+        // Just return version.
+        return $versionkey;
     }
 
     list($feat, $subfeat) = explode('/', $feature);

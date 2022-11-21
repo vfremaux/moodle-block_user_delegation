@@ -89,6 +89,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'country' => 1,
         'lang' => 1,
         'auth' => 1,
+        'cohort' => 1,
+        'cohortid' => 1,
         'timezone' => 1,
         'idnumber' => 1,
         'icq' => 1,
@@ -120,6 +122,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     // Default values for optional fields (only for  NOT null fields without DEFAULT in db schema).
     $optionalDefaults = array(
         'idnumber' => '',
+        'cohort' => '',
+        'cohortid' => '',
         'icq' => '',
         'skype' => '',
         'yahoo' => '',
@@ -150,8 +154,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         'lastname' => 100,
                         'email' => 100,
                         'institution' => 40,
-                        'department' => 30,
-                        'city' => 20,
+                        'department' => 40,
+                        'city' => 30,
+                        'cohort' => 254,
+                        'cohortid' => 100,
                         'lang' => 30,
                         'auth' => 20,
                         'timezone' => 100,
@@ -253,6 +259,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // Add fields to object $user.
             foreach ($record as $name => $value) {
 
+                if (in_array($name, ['cohort', 'cohortid'])) {
+                    continue;
+                }
+
                 // Trim fields.
                 $value = trim($value);
 
@@ -305,7 +315,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // Check if trying to upload 'changeme' user. If not, skip the line.
 
             if ($user->username === 'changeme') {
-                $log .= useradmin_uploaduser_notify_error( $linenum, get_string('invaliduserchangeme', 'admin'), null, $user->username, true);
+                $log .= useradmin_uploaduser_notify_error($linenum, get_string('invaliduserchangeme', 'admin'), null, $user->username, true);
                 $userserrors++;
                 continue; // Skip line.
             }
@@ -405,6 +415,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
             // Add the uploaded/updated user on behalf of the uploader.
             userdelegation::attach_user($USER->id, $user->id);
+
+            userdelegation::bind_cohort($record, $user, $log);
 
             // Assign it to the selected course if any.
             if (!empty($data->coursetoassign)) {

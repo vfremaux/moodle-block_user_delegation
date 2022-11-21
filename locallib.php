@@ -43,3 +43,26 @@ function user_delegation_get_user_courses_bycap($userid, $cap, $accessdata_ignor
 
     return $courses;
 }
+
+function user_delegation_get_owned_courses() {
+    global $DB;
+
+    $allcourses = $DB->get_records('course', array(), 'category,fullname', 'id,shortname,fullname,category');
+    $coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
+    $categorycache = array();
+    if ($allcourses) {
+        foreach ($allcourses as $c) {
+            $coursecontext = context_course::instance($c->id);
+            if (!has_capability('block/user_delegation:owncourse', $coursecontext)) {
+                continue;
+            }
+            $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
+            if (!array_key_exists($c->category, $categorycache)) {
+                $categorycache[$c->category] = format_string($DB->get_field('course_categories', 'name', array('id' => $c->category)));
+            }
+            $coursesarr[$course->id] = "... / ".$categorycache[$c->category].' / '.$course->fullname;
+        }
+    }
+
+    return $coursesarr;
+}

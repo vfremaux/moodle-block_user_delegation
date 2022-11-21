@@ -1,4 +1,4 @@
-<?php  
+<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -34,10 +34,12 @@ foreach ($roles as $rid => $role) {
 
 if ($ADMIN->fulltree) {
 
-    $key = 'block_user_delegation/corole';
-    $label = get_string('configdelegationownerrole', 'block_user_delegation');
-    $desc = get_string('configdelegationownerrole_desc', 'block_user_delegation');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 'courseowner', $rolemenu));
+    if (!empty($rolemenu)) {
+        $key = 'block_user_delegation/corole';
+        $label = get_string('configdelegationownerrole', 'block_user_delegation');
+        $desc = get_string('configdelegationownerrole_desc', 'block_user_delegation');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, 'courseowner', $rolemenu));
+    }
 
     $yesnooptions = array('0' => get_string('no'), '1' => get_string('yes'));
 
@@ -51,10 +53,12 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configuseadvancedform_desc', 'block_user_delegation');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions));
 
-    $key = 'block_user_delegation/useuserquota';
-    $label = get_string('configuseuserquota', 'block_user_delegation');
-    $desc = get_string('configuseuserquota_desc', 'block_user_delegation');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions));
+    if (is_dir($CFG->dirroot.'/local/resource_limiter')) {
+        $key = 'block_user_delegation/useuserquota';
+        $label = get_string('configuseuserquota', 'block_user_delegation');
+        $desc = get_string('configuseuserquota_desc', 'block_user_delegation');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions));
+    }
 
     $csvseparatoroptions = array(';' => '(;) semicolon', ':' => '(:) colon', ',' => '(,) coma', "\t" => 'TAB');
 
@@ -66,7 +70,8 @@ if ($ADMIN->fulltree) {
     if (block_user_delegation_supports_feature('emulate/community') == 'pro') {
         // This will accept any.
         include_once($CFG->dirroot.'/blocks/user_delegation/pro/prolib.php');
-        \block_user_delegation\pro_manager::add_settings($ADMIN, $settings);
+        $promanager = block_user_delegation\pro_manager::instance();
+        $promanager->add_settings($ADMIN, $settings);
     } else {
         $label = get_string('plugindist', 'block_user_delegation');
         $desc = get_string('plugindist_desc', 'block_user_delegation');

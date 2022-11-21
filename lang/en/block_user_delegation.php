@@ -40,6 +40,10 @@ $string['badblockid'] = 'Bad block id';
 $string['blockname'] = 'User Administration Subdelegation';
 $string['changeenrolment'] = 'Change enrolments';
 $string['colon'] = ':';
+$string['cohort'] = 'Cohort name';
+$string['cohortid'] = 'Cohort IDNumber';
+$string['cohort_help'] = 'If set to some name, attach the user to the cohort (system level only), or create the systemlevel cohort with his name.';
+$string['cohortid_help'] = 'If set to some non empty value, will find the cohotr to add the user (system level), If cohort name is given and does not exist, thant sets the cohort IDNumber';
 $string['comma'] = ',';
 $string['configallowenrol'] = 'Allow enrol';
 $string['configcsvseparator'] = 'CSV separator';
@@ -61,8 +65,6 @@ $string['doseol'] = 'DOS Line endings';
 $string['duplicatemails'] = 'Duplicate mails count';
 $string['edituser'] = 'Edit User';
 $string['edituseradvanced'] = 'Edit User (advanced mode)';
-$string['emulatecommunity'] = 'Emulate community version';
-$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version. This might loose features !';
 $string['enrolnotallowed'] = 'Enrol not allowed';
 $string['errorcreateuser'] = 'Error creating user record';
 $string['errorinvalidaccess'] = 'Invalid access parameter.';
@@ -94,10 +96,6 @@ $string['institution'] = 'Institution';
 $string['invalidfieldname_areyousure'] = 'Invalid field name {$a}';
 $string['invalidmails'] = 'Invalid mails count';
 $string['lastownerdeletes'] = 'Last owner deletes';
-$string['licenseprovider'] = 'Pro License provider';
-$string['licenseprovider_desc'] = 'Input here your provider key';
-$string['licensekey'] = 'Pro license key';
-$string['licensekey_desc'] = 'Input here the product license key you got from your provider';
 $string['linenumber'] = 'Line {$a}';
 $string['loadingcoursegroups'] = 'Loading course groups...';
 $string['loadinggroups'] = 'Loading groups...  please wait';
@@ -123,7 +121,6 @@ $string['nostudents'] = 'There are currently no students.';
 $string['noteachers'] = 'There are currently no teachers.';
 $string['onlyalphanum'] = 'Alphanum only';
 $string['pipe'] = '|';
-$string['plugindist'] = 'Plugin distribution';
 $string['pluginname'] = 'User Administration Subdelegation';
 $string['semicolon'] = ';';
 $string['skipthisline'] = 'Skip this line';
@@ -173,15 +170,19 @@ $string['uploadusers_help'] = '
 
 <p><code>firstname</code>, <code>lastname</code>, <code>email</code> for a user addition or <code>username</code> for an update</p>
 
-<p><b>Optional fields</b>: those fields are optional. If not defined in the file, some of them will receive a default value from the Moodle site central settings.</p>
+<p><b>Optional fields</b>: those fields are optional. If not defined in the file, some of them will receive a default value from
+the Moodle site central settings.</p>
 
-<p><code>city</code> (uppercase), <code>institution</code>, <code>department</code>, <code>country</code> (FR, UK), <code>lang</code> (fr,en,es,...) <!-- auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description, <!-- mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
+<p><code>city</code> (uppercase), <code>institution</code>, <code>department</code>, <code>country</code> (FR, UK),
+<code>lang</code> (fr,en,es,...) <!-- auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description,
+<!-- mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
 
-<p><b>Custom profile fields</b> : these fields are supported, replace xxxxx by the custom field shortname. The Moodle administrator should have published instructions for you about those field options.</p>
+<p><b>Custom profile fields</b> : these fields are supported, replace xxxxx by the custom field shortname. The Moodle administrator
+should have published instructions for you about those field options.</p>
 
     <code>profile_field_xxxxx</code>
 
-<p><b>Special fields</b> : Those fields may help you to delete or suspend users. Note that you cannot delete nor suspend users that 
+<p><b>Special fields</b> : Those fields may help you to delete or suspend users. Note that you cannot delete nor suspend users that
 are shared with other mentors.</p>
 
     <code>deleted</code>, <code>suspended</code>
@@ -189,6 +190,13 @@ are shared with other mentors.</p>
 <p><b>Enrol fields</b>: No enrol fields nor role information his supported by this user import service.</p>
 
 <p>Use 0 and 1 for respectively "false" and "true" states of a boolean field.</p>
+
+<p><b>Cohort fields</b>: Those fields allow binding the user to an existing cohort, on in some cases, add a cohort to put the user in.</p>
+
+<ul>
+<li><code>cohort</code>: If the cohort with the given name exists, will add the user in the cohort. If not creates the cohort with that name to add the user in.</li>
+<li><code>cohortid</code>: If the cohort does not exist, provides the IDNumber of the cohort to create. If the cohort exists, tou may just use the cohortid to find the bound cohort by IDNumber.</li>
+</ul>
 ';
 
 $string['createpassword_help'] = '
@@ -196,9 +204,4 @@ If you choose to let Moodle create passwords, you will NOT have communication of
 Moodle will send directly passwords to users on base of the declared email in the import file. User emails thus need to be valid emails.
 ';
 
-$string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
-core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
-and improvement effort.</p>
-<p>Please contact one of our distributors to get "Pro" version support.</p>
-<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li>
-<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
+include(__DIR__.'/pro_additional_strings.php');

@@ -332,4 +332,62 @@ class userdelegation {
         }
         return $data;
     }
+
+    public static function bind_cohort($record, $user, &$log) {
+        global $DB;
+
+        $systemcontext = context_system::instance();
+
+        // Cohort (only system level) binding management.
+        if (empty($record['cohort']) && empty($record['cohortid'])) {
+            // Quick bypass.
+            return;
+        }
+
+        $cancreate = 0;
+        if (!empty($record['cohort'])) {
+            $cohort = $DB->get_record('cohort', array('name' => $record['cohort']));
+            // We will only be able to create a cohort if we have a name.
+            $cancreate = 1;
+        }
+        if (!empty($record->cohortid)) {
+            // cohort id prehempts on cohort name if both are present.
+            $cohort = $DB->get_record('cohort', array('idnumber' => $record['cohortid']));
+        }
+        $t = time();
+        if (!$cohort && $cancreate) {
+            $cohort = new \StdClass();
+            $cohort->name = $record['cohort'];
+            $cohort->idnumber = @$record['cohortid'];
+            $cohort->descriptionformat = FORMAT_MOODLE;
+            $cohort->contextid = $systemcontext->id;
+            $cohort->timecreated = $t;
+            $cohort->timemodified = $t;
+            if (empty($syncconfig->simulate)) {
+                $cohort->id = $DB->insert_record('cohort', $cohort);
+            } else {
+                $log .= 'SIMULATION : '.get_string('creatingcohort', 'tool_csvsync', $cohort->name);
+            }
+        }
+
+        $log .= 'Processing cohorts in : '.$cohort->idnumber.' > '.$cohort->name;
+        if (!empty($cohort->id)) {
+            // Bind user to cohort.
+            $params = array('userid' => $user->id, 'cohortid' => $cohort->id);
+            if (!$cohortmembership = $DB->get_record('cohort_members', $params)) {
+                $cohortmembership = new \StdClass();
+                $cohortmembership->userid = $user->id;
+                $cohortmembership->cohortid = ''.@$cohort->id;
+                $cohortmembership->timeadded = $t;
+                if (empty($syncconfig->simulate)) {
+                    $cohortmembership->id = $DB->insert_record('cohort_members', $cohortmembership);
+                    $log .= 'Adding membership : '.$cohort->idnumber.' > '.$cohort->name;
+                } else {
+                    $log .= 'SIMULATION : '.get_string('registeringincohort', 'tool_csvsync', $cohort->name);
+                }
+            }
+        } else {
+            $log .= 'No cohort found: '.@$record['cohort'].' > '.@$record['cohortid'];
+        }
+    }
 }

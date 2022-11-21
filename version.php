@@ -26,12 +26,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019032500;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2018112800;        // Requires this Moodle version.
+$plugin->version   = 2021102100;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->requires  = 2020060900;        // Requires this Moodle version.
 $plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_RC;
-$plugin->release = '3.6.0 (Build 2019032500)';
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = '3.9.0 (Build 2021102100)';
+$plugin->supported = [39,311];
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.6.0004';
+$plugin->codeincrement = '3.9.0005';
 $plugin->privacy = 'dualrelease';
