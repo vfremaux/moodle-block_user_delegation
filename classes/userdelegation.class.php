@@ -213,7 +213,9 @@ class userdelegation {
         }
         $personalcontext = context_user::instance($userid);
 
-        $fields = 'u.id,'.get_all_user_name_fields(true, 'u');
+        // M4.
+        $fields = \core_user\fields::for_name()->with_userpic()->excluding('id')->get_required_fields();
+        $fields = 'u.id,'.implode(',', $fields);
         $sort = 'lastname,firstname';
         $owners = get_users_by_capability($personalcontext, 'block/user_delegation:isbehalfof', $fields, $sort, 0, 0, '', '', true);
 
