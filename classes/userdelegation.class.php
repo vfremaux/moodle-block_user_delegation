@@ -23,6 +23,10 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/blocks/user_delegation/compatlib.php');
+
+use \block_user_delegation\compat;
+
 /**
  * 
  */
@@ -213,7 +217,7 @@ class userdelegation {
         }
         $personalcontext = context_user::instance($userid);
 
-        $fields = 'u.id,'.get_all_user_name_fields(true, 'u');
+        $fields = compat::user_fields('u');
         $sort = 'lastname,firstname';
         $owners = get_users_by_capability($personalcontext, 'block/user_delegation:isbehalfof', $fields, $sort, 0, 0, '', '', true);
 
