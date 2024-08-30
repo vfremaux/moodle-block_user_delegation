@@ -19,8 +19,9 @@
  */
 namespace block_user_delegation;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Compatibility functions.
+ */
 class compat {
 
     public static function get_user_fields($prefix = 'u') {

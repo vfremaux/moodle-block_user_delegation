@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Main block class
+ *
  * @package block_user_delegation
- * @category  blocks
  * @authors Wafa Adham & Valery Fremaux
  * @copyright  2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,25 +32,52 @@ if (is_dir($CFG->dirroot.'/local/moodlescript')) {
     require_once($CFG->dirroot.'/local/moodlescript/lib.php');
 }
 
+/** 
+ * Main block class
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+ */
 class block_user_delegation extends block_base {
 
+    /**
+     * Standard init
+     */
     public function init() {
         $this->title = get_string('user_delegation', 'block_user_delegation');
     }
 
+    /**
+     * Where the block can be added.
+     */
     public function applicable_formats() {
-        return array('all' => true, 'my' => true);
+        return ['all' => true, 'my' => true];
     }
 
+    /**
+     * Can we have several inténces in context ?
+     */
     public function instance_allow_multiple() {
         return false;
     }
 
+    /**
+     * Can we configure the instance ?
+     */
     public function instance_allow_config() {
         $blockcontext = context_block::instance($this->instance->id);
         return has_capability('block/user_delegation:configure', $blockcontext);
     }
 
+    /**
+     * Can the user edit the block ?
+     */
     public function user_can_edit() {
         if (has_capability('block/user_delegation:configure', $this->context)) {
             return true;
@@ -57,10 +85,16 @@ class block_user_delegation extends block_base {
         return false;
     }
 
+    /**
+     * Does the block has global config ?
+     */
     public function has_config() {
         return true;
     }
 
+    /**
+     * Main content
+     */
     public function get_content() {
         global $USER, $COURSE;
 
@@ -89,7 +123,7 @@ class block_user_delegation extends block_base {
         $viewmyusersstr = get_string('viewmyusers', 'block_user_delegation');
 
         $menu = '<ul>';
-        $params = array('id' => $this->instance->id, 'course' => $COURSE->id);
+        $params = ['id' => $this->instance->id, 'course' => $COURSE->id];
         $linkurl = new moodle_url('/blocks/user_delegation/myusers.php', $params);
         $menu .= ' <li><a href="'.$linkurl.'">'.$viewmyusersstr.'</a></li>';
 
@@ -131,6 +165,11 @@ class block_user_delegation extends block_base {
 
     /**
      * checks if a user has a some named capability effective somewhere in a course.
+     * @param string $capability
+     * @param bool $excludesystem
+     * @param bool $excludesite
+     * @param bool $doanything
+     * @param string $contextlevels
      */
     static public function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
         global $USER, $DB;
@@ -183,12 +222,16 @@ class block_user_delegation extends block_base {
         return false;
     }
 
+    /**
+     * Bulk process users.
+     * @param object $data
+     */
     public static function process_bulk($data) {
         global $USER, $COURSE, $CFG;
 
         $report = $str;
         $config = get_config('block_user_delegation');
-        $script = @$config->prescript;
+        $script = $config->prescript ?? '';
 
         $i = 0;
         foreach ($data->firstname as $fn) {
@@ -197,7 +240,7 @@ class block_user_delegation extends block_base {
                 continue;
             }
 
-            $user = new StdClass;
+            $user = new StdClass();
             $user->firstname = $fn;
             $user->lastname = $data->lastname[$i];
             $user->email = $data->email[$i];
@@ -234,13 +277,15 @@ class block_user_delegation extends block_base {
             ";
         }
 
-        $globalcontext = array('courseid' => $COURSE->id,
-                               'userid' => $USER->id);
+        $globalcontext = [
+            'courseid' => $COURSE->id,
+            'userid' => $USER->id,
+        ];
 
         $report = '';
         if (is_dir($CFG->dirroot.'/local/moodlescript')) {
 
-            $script = @$config->postscript;
+            $script = $config->postscript ?? '';
 
             // Make a script engine and run it.
             $engine = local_moodlescript_get_engine($script);
@@ -252,6 +297,8 @@ class block_user_delegation extends block_base {
 
     /**
      * Computes a free username or return a very potential old user record.
+     * @param object $user
+     * @param object $moodleuser
      */
     protected static function compute_username($user, &$moodleuser) {
         global $DB;
@@ -263,7 +310,7 @@ class block_user_delegation extends block_base {
         $pass = false;
         $index = 1;
         $antiloop = 0;
-        while ((($olduser = $DB->get_record('user', array('username' => $username))) || $pass) && ($antiloop < 10)) {
+        while ((($olduser = $DB->get_record('user', ['username' => $username])) || $pass) && ($antiloop < 10)) {
 
             if (!$olduser) {
                 break;
@@ -289,18 +336,36 @@ class block_user_delegation extends block_base {
         return $username;
     }
 
+    /**
+     * Utility function
+     * @param string $text
+     */
     public static function trim_utf8_bom($text) {
      return core_text::trim_utf8_bom($text);
     }
 
+    /**
+     * Utility function
+     * @param string $text
+     * @todo use core_text functions.
+     */
     public static function strtolower($text) {
         return core_text::strtolower($text);
     }
 
+    /**
+     * Get user's fields of interest.
+     * @param int $id
+     */
     public static function user_interests($id) {
         return core_tag_tag::get_item_tags_array('core', 'user', $id);
     }
 
+    /**
+     * Trigger a user event
+     * @param string $eventname
+     * @param object $usernew
+     */
     public static function trigger_event($eventname, $usernew) {
         $class = "\\core\\event\\".$eventname;
         $func = $class."::create_from_userid";

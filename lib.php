@@ -17,6 +17,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
+ * Gives metadata relatove to the dual distribution
+ * @param string $feature
+ * @param bool $getsupported
  */
 function block_user_delegation_supports_feature($feature = null, $getsupported = false) {
     global $CFG;
