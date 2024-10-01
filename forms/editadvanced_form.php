@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Form for advanced users definition.
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,9 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
 
+/**
+ * Form definition.
+ */
 class user_editadvanced_form extends user_editsimple_form {
 
-    // Define the form.
+    /**
+     * Standard definition.
+     */
     public function definition() {
         global $USER, $CFG, $COURSE;
 
@@ -62,10 +68,10 @@ class user_editadvanced_form extends user_editsimple_form {
         $mform->setType('username', PARAM_RAW);
         $mform->addRule('username', $strrequired, 'required', null, 'client');
 
-        $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
+        $mform->addElement('advcheckbox', 'suspended', get_string('suspended', 'auth'));
         $mform->addHelpButton('suspended', 'suspended', 'auth');
 
-        if (!empty($CFG->passwordpolicy)){
+        if (!empty($CFG->passwordpolicy)) {
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
 
@@ -93,7 +99,8 @@ class user_editadvanced_form extends user_editsimple_form {
         if ($this->_customdata['userid'] == -1) {
             $btnstring = get_string('createuser');
             if (!empty($this->_customdata['courses'])) {
-                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
+                $lbl = get_string('coursetoassign', 'block_user_delegation');
+                $mform->addElement('select', 'coursetoassign', $lbl, $this->_customdata['courses']);
             }
         } else {
             $btnstring = get_string('update');
@@ -102,12 +109,15 @@ class user_editadvanced_form extends user_editsimple_form {
         $this->add_action_buttons(false, $btnstring);
     }
 
+    /**
+     * Changes the form after data is loaded.
+     */
     public function definition_after_data() {
         global $USER, $CFG, $DB, $OUTPUT;
 
         $mform =& $this->_form;
         if ($userid = $mform->getElementValue('id')) {
-            $user = $DB->get_record('user', array('id' => $userid));
+            $user = $DB->get_record('user', ['id' => $userid]);
         } else {
             $user = false;
         }
@@ -117,8 +127,8 @@ class user_editadvanced_form extends user_editsimple_form {
             $lang = reset($langsel);
             // Check lang exists.
             if (!get_string_manager()->translation_exists($lang, false)) {
-                $lang_el =& $mform->getElement('lang');
-                $lang_el->setValue($CFG->lang);
+                $langel =& $mform->getElement('lang');
+                $langel->setValue($CFG->lang);
             }
         }
 
@@ -141,13 +151,13 @@ class user_editadvanced_form extends user_editsimple_form {
             $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
         }
 
-        if ($user and is_mnet_remote_user($user)) {
+        if ($user && is_mnet_remote_user($user)) {
             // Only local accounts can be suspended.
             if ($mform->elementExists('suspended')) {
                 $mform->removeElement('suspended');
             }
         }
-        if ($user and ($user->id == $USER->id or is_siteadmin($user))) {
+        if ($user && ($user->id == $USER->id || is_siteadmin($user))) {
             // Prevent self and admin mess ups.
             if ($mform->elementExists('suspended')) {
                 $mform->hardFreeze('suspended');
@@ -159,9 +169,10 @@ class user_editadvanced_form extends user_editsimple_form {
             if ($user) {
                 $context = context_user::instance($user->id, MUST_EXIST);
                 $fs = get_file_storage();
-                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
+                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png')
+                        || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
                 if (!empty($user->picture) && $hasuploadedpicture) {
-                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size' => 64));
+                    $imagevalue = $OUTPUT->user_picture($user, ['courseid' => SITEID, 'size' => 64]);
                 } else {
                     $imagevalue = get_string('none');
                 }
@@ -192,11 +203,11 @@ class user_editadvanced_form extends user_editsimple_form {
         $usernew = (object)$usernew;
         $usernew->username = trim($usernew->username);
 
-        $user = $DB->get_record('user', array('id' => $usernew->id));
-        $err = array();
+        $user = $DB->get_record('user', ['id' => $usernew->id]);
+        $err = [];
 
         if (!empty($usernew->newpassword)) {
-            $errmsg = ''; // Prevent eclipse warning.
+            $errmsg = '';
             if (!check_password_policy($usernew->newpassword, $errmsg)) {
                 $err['newpassword'] = $errmsg;
             }
@@ -205,9 +216,9 @@ class user_editadvanced_form extends user_editsimple_form {
         if (empty($usernew->username)) {
             // Might be only whitespace.
             $err['username'] = get_string('required');
-        } else if (!$user or $user->username !== $usernew->username) {
+        } else if (!$user || $user->username !== $usernew->username) {
             // Check new username does not exist.
-            if ($DB->record_exists('user', array('username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id))) {
+            if ($DB->record_exists('user', ['username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id])) {
                 $err['username'] = get_string('usernameexists');
             }
             // Check allowed characters.
@@ -220,10 +231,11 @@ class user_editadvanced_form extends user_editsimple_form {
             }
         }
 
-        if (!$user or $user->email !== $usernew->email) {
+        if (!$user || $user->email !== $usernew->email) {
             if (!validate_email($usernew->email)) {
                 $err['email'] = get_string('invalidemail');
-            } else if ($DB->record_exists('user', array('email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id))) {
+                $params = ['email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id];
+            } else if ($DB->record_exists('user', $params)) {
                 $err['email'] = get_string('emailexists');
             }
         }
@@ -231,15 +243,17 @@ class user_editadvanced_form extends user_editsimple_form {
         // Next the customisable profile fields.
         $err += profile_validation($usernew, $files);
 
-        if (count($err) == 0){
+        if (count($err) == 0) {
             return true;
         } else {
             return $err;
         }
     }
 
+    /**
+     * Disable form change signal.
+     */
     public function disable_form_change_checker() {
         $this->_form->disable_form_change_checker();
     }
-
 }

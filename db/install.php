@@ -15,13 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Post install script
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard post install handler.
@@ -30,6 +29,9 @@ function xmldb_block_user_delegation_install() {
     assert(1);
 }
 
+/**
+ * Late install should be post triggered.
+ */
 function xmldb_block_user_delegation_late_install() {
     global $DB;
 
@@ -44,13 +46,13 @@ function xmldb_block_user_delegation_late_install() {
      * courseowner role might exist f.e. if local_shop has been installed. We must test this
      * and complete the role if exists.
      */
-    $contextlevels = array(CONTEXT_COURSECAT, CONTEXT_COURSE, CONTEXT_USER);
+    $contextlevels = [CONTEXT_COURSECAT, CONTEXT_COURSE, CONTEXT_USER];
 
-    if (!$role = $DB->get_record('role', array('shortname' => $shortname))) {
+    if (!$role = $DB->get_record('role', ['shortname' => $shortname])) {
         if ($roleid = create_role($name, $shortname, $description, $legacy)) {
             // Boostrap courseowner to the same as editingteacher.
 
-            $editingteacher = $DB->get_record('role', array('shortname' => 'editingteacher'));
+            $editingteacher = $DB->get_record('role', ['shortname' => 'editingteacher']);
 
             role_cap_duplicate($editingteacher, $roleid);
             assign_capability('block/user_delegation:cancreateusers', CAP_ALLOW, $roleid, $syscontext->id, true);
@@ -59,18 +61,18 @@ function xmldb_block_user_delegation_late_install() {
             assign_capability('block/user_delegation:isbehalfof', CAP_ALLOW, $roleid, $syscontext->id, true);
             assign_capability('block/user_delegation:view', CAP_ALLOW, $roleid, $syscontext->id, true);
 
-            $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
-            $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
-            $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'editingteacher'));
-            $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+            $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'student']);
+            $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+            $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+            $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'guest']);
 
             foreach ($assigntargetrole as $t) {
                 allow_assign($roleid, $t);
             }
 
-            $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
-            $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
-            $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+            $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'student']);
+            $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+            $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'guest']);
 
             foreach ($overridetargetrole as $t) {
                 try {
@@ -97,18 +99,18 @@ function xmldb_block_user_delegation_late_install() {
          * Add role assign allowance to owner
          * We only allow and override on standard roles.
          */
-        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
-        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
-        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'editingteacher'));
-        $assigntargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+        $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'student']);
+        $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+        $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+        $assigntargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'guest']);
 
         foreach ($assigntargetrole as $t) {
             allow_assign($role->id, $t);
         }
 
-        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'student'));
-        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'teacher'));
-        $overridetargetrole[] = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+        $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'student']);
+        $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+        $overridetargetrole[] = $DB->get_field('role', 'id', ['shortname' => 'guest']);
 
         foreach ($overridetargetrole as $t) {
             core_role_set_assign_allowed($role->id, $t);

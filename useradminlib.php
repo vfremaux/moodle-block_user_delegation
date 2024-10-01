@@ -14,67 +14,71 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * Admin lib overrides.
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Common Constants
+defined('MOODLE_INTERNAL') || die();
 
-// Standard User field names included in the listing
-$standarduserfieldnames = array (
+// Common Constants.
+
+// Standard User field names included in the listing.
+$standarduserfieldnames = [
     'firstname', 'lastname', 'username', 'email',
     'institution', 'department', 'city', 'country',
     'lastaccess', 'auth', 'mnethostname',
-    'confirmed');
+    'confirmed',
+];
 
-// Extended list
+// Extended list.
 $extendeduserfieldnames = array_merge (
     $standarduserfieldnames,
-    array ( 'emailstop', 'lang',
+     [ 'emailstop', 'lang',
            'maildisplay', 'maildigest', 'ajax', 'autosubscribe',
            'trackforums', 'screenreader',
-           'lastlogin', 'timemodified' ) );
+           'lastlogin', 'timemodified',
+    ]
+);
 
-// File Separators
-$fieldseparatoroptions = array(
+// File Separators.
+$fieldseparatoroptions = [
     0 => ",",
     1 => ";",
     2 => ":",
     3 => "|",
-    4 => "\t"
-);
+    4 => "\t",
+];
 
-// File separator menu options
-$fieldseparatormenuoptions = array (
+// File separator menu options.
+$fieldseparatormenuoptions = [
     0 => get_string('comma', 'block_user_delegation'),
     1 => get_string('semicolon', 'block_user_delegation'),
     2 => get_string('colon', 'block_user_delegation'),
     3 => get_string('pipe', 'block_user_delegation'),
-    4 => get_string('tab', 'block_user_delegation') 
-);
+    4 => get_string('tab', 'block_user_delegation'),
+];
 
-// File encoding menu options
-$fileencodingmenuoptions = array (
+// File encoding menu options.
+$fileencodingmenuoptions = [
     0 => 'UTF-8',
-    1 => 'Latin (ISO-8859-1)'
-);
+    1 => 'Latin (ISO-8859-1)',
+];
 
-// Separator encoding
-$separatorencodings = array (
+// Separator encoding.
+$separatorencodings = [
     0 => '44',
     1 => '59',
     2 => '124',
-    3 => '11'
-);
+    3 => '11',
+];
 
-// Filter params Defaults
-$filterparams_default = array (
+// Filter params Defaults.
+$filterparamsdefault = [
     'sort' => 'name',
     'dir' => 'ASC',
     'page' => 0,
@@ -89,12 +93,12 @@ $filterparams_default = array (
     'roleid' => '',
     'mnethostid' => '',
     'filterconfirmed' => 0,
-    'filterauth' => ''
-);
+    'filterauth' => '',
+];
 
 // Expand/Collapse fields defaults
-$expandcollapsefields_defaults = array (
-    '_fullform'=> 1,  // Show/hide full form
+$expandcollapsefieldsdefaults = [
+    '_fullform' => 1,  // Show/hide full form
     'username' => 0, // Other columns...
     'email' => 1,
     'institution' => 1,
@@ -104,35 +108,35 @@ $expandcollapsefields_defaults = array (
     'lastaccess' => 1,
     'auth' => 0,
     'mnethostname' => 0,
-    'confirmed' => 0
-);
+    'confirmed' => 0,
+];
 
-$options_filterconfirmed = array (
-    '0' => get_string('filterconfirmed_all','block_user_delegation'),
-    '1' => get_string('filterconfirmed_confirmedonly','block_user_delegation'), 
-    '2' => get_string('filterconfirmed_unconfirmedonly','block_user_delegation') 
-);
+$optionsfilterconfirmed = [
+    '0' => get_string('filterconfirmed_all', 'block_user_delegation'),
+    '1' => get_string('filterconfirmed_confirmedonly', 'block_user_delegation'),
+    '2' => get_string('filterconfirmed_unconfirmedonly', 'block_user_delegation'),
+];
 
-$options_eol = array (
-    0 => get_string('doseol','block_user_delegation'),
-    1 => get_string('unixeol','block_user_delegation'),
-    2 => get_string('maceol','block_user_delegation')
-);
+$optionseol = [
+    0 => get_string('doseol', 'block_user_delegation'),
+    1 => get_string('unixeol', 'block_user_delegation'),
+    2 => get_string('maceol', 'block_user_delegation'),
+];
 
-$eols = array ( 0 => "\r\n",
+$eols = [ 0 => "\r\n",
     1 => "\n",
-    2 => "\r"
-);
+    2 => "\r",
+];
 
-// E-Mail check errors
+// E-Mail check errors.
 define("MAILCHK_MALFORMEDADDRESS", 1);
 define("MAILCHK_DOMAINNOTALLOWED", 2);
 define("MAILCHK_INVALIDDOMAIN", 3);
 
 
 /**
-* Check if the user has base capabilities to see the block, list and download users
-*/
+ * Check if the user has base capabilities to see the block, list and download users
+ */
 function useradmin_has_capabilities_to_list() {
     global $COURSE;
 
@@ -294,21 +298,22 @@ function useradmin_require_capabilities_to_assign() {
  * @param int $roleid
  * @param int $mnethostid
  */
-function useradmin_search_description($search, $firstinitial, $lastinitial, $contextlevel, $contextinstanceid, $donthaverole, $roleid, $mnethostid, $filterconfirmed, $filterauth) {
+function useradmin_search_description($search, $firstinitial, $lastinitial, $contextlevel, $contextinstanceid, $donthaverole,
+        $roleid, $mnethostid, $filterconfirmed, $filterauth) {
 
     $searchdesc = '';
     $strand = ' '. get_string('and', 'block_useradmin') .' ';
 
     if ( $search ) {
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('searchbystring', 'block_useradmin', $search);
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('searchbystring', 'block_useradmin', $search);
     }
 
     if ( $firstinitial ) {
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('searchbyfirstinitial', 'block_useradmin', $firstinitial);
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('searchbyfirstinitial', 'block_useradmin', $firstinitial);
     }
 
     if ( $lastinitial ) {
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('searchbylastinitial', 'block_useradmin', $lastinitial);
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('searchbylastinitial', 'block_useradmin', $lastinitial);
     }
 
     if ( $contextlevel && $contextinstanceid && $roleid ) {
@@ -320,24 +325,24 @@ function useradmin_search_description($search, $firstinitial, $lastinitial, $con
         $roles = useradmin_get_available_roles($contextlevel, $contextinstanceid);
         $str->role = $roles[$roleid];
         if ( $donthaverole ) {
-            $str->donthaverole = get_string('searchhavenot','block_useradmin');
+            $str->donthaverole = get_string('searchhavenot', 'block_useradmin');
         } else {
-            $str->donthaverole = get_string('searchhave','block_useradmin');
+            $str->donthaverole = get_string('searchhave', 'block_useradmin');
         }
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('searchbycontext', 'block_useradmin', $str);
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('searchbycontext', 'block_useradmin', $str);
     }
     if ( $mnethostid ) {
         $hosts = useradmin_get_available_mnet_hosts();
         $host = $hosts[$mnethostid];
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('searchbyhost','block_useradmin', $host);
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('searchbyhost', 'block_useradmin', $host);
     }
     if ( $filterconfirmed == 1 ) {
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('filterconfirmed_confirmedonly','block_useradmin');
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('filterconfirmed_confirmedonly', 'block_useradmin');
     } else if ( $filterconfirmed == 2 ) {
-        $searchdesc .= (($searchdesc )?$strand:''). get_string('filterconfirmed_unconfirmedonly','block_useradmin');
+        $searchdesc .= (($searchdesc ) ? $strand : ''). get_string('filterconfirmed_unconfirmedonly', 'block_useradmin');
     }
     if ($filterauth) {
-        $searchdesc .= (($searchdesc )?$strand:'').  get_string('searchbyauth','block_useradmin', $filterauth);
+        $searchdesc .= (($searchdesc ) ? $strand : '').  get_string('searchbyauth', 'block_useradmin', $filterauth);
     }
     if ( $searchdesc ) {
         $searchdesc = get_string('searchconditions', 'block_useradmin') .' '.$searchdesc;
@@ -353,70 +358,69 @@ function useradmin_search_description($search, $firstinitial, $lastinitial, $con
  * retrieved by the query, WITHOUT taking account of paging
  * @return array of users
  */
-function useradmin_get_users_listing(&$searchcount, $sort='lastaccess', $dir='ASC', $page=0, $recordsperpage=99999,$search='', $firstinitial='', $lastinitial='',
-$contextlevel=NULL, $contextinstanceid=NULL, $donthaverole=false, $roleid=NULL, $mnethostid='', $filterconfirmed=0, $filterauth ='',
-$searchcustomfields = false,
-$customfieldstoshow=NULL,
-$customfields=NULL ) {
+function useradmin_get_users_listing(&$searchcount, $sort='lastaccess', $dir='ASC', $page=0, $recordsperpage=99999, $search='',
+        $firstinitial='', $lastinitial='', $contextlevel=null, $contextinstanceid=null, $donthaverole=false, $roleid=null,
+        $mnethostid='', $filterconfirmed=0, $filterauth ='', $searchcustomfields = false, $customfieldstoshow=null, $customfields=null ) {
     global $CFG;
     $selectlist = "u.*, mh.name AS mnethostname, mh.wwwroot AS mnethostwwwroot";
-//        // Adds custom fields to select list if needed
-//        // they need to be included as subselects
-//        if ( $customfieldstoshow  ) {
-//            foreach($customfieldstoshow as $customfield ) {
-//                $customfieldid = $customfields[$customfield]->id;
-//                $selectlist = $selectlist.", (select data from {$CFG->prefix}user_info_data where fieldid = $customfieldid AND userid = u.id) AS $customfield";
-//            }
-//        }
-    // Adds custom fields to select list, if needed
+
+    // Adds custom fields to select list, if needed.
     if ( $customfieldstoshow  ) {
         $customfldcount = 0;
-        foreach($customfieldstoshow as $customfield ) {
+        foreach($customfieldstoshow as $customfield) {
             $customfieldid = $customfields[$customfield]->id;
             $custalias = "cust$customfldcount";
             $selectlist .= ", $custalias.data AS $customfield";
             $customfldcount++;
         }
     }
-    $LIKE      = sql_ilike();
+    $like      = sql_ilike();
     $fullname  = sql_fullname();
-    $from = "{user} u LEFT OUTER JOIN {mnet_host} mh ON u.mnethostid = mh.id";
-    // Adds custom fields LEFT OUTER JOINs
+    $from = "
+            {user} u
+        LEFT OUTER JOIN
+            {mnet_host} mh
+        ON
+            u.mnethostid = mh.id
+    ";
+    // Adds custom fields LEFT OUTER JOINs.
     if ( $customfieldstoshow  ) {
         $customfldcount = 0;
-        foreach($customfieldstoshow as $customfield ) {
+        foreach($customfieldstoshow as $customfield) {
             $customfieldid = $customfields[$customfield]->id;
             $custalias = "cust$customfldcount";
-            $from .= " LEFT OUTER JOIN {user_info_data} $custalias ON ($custalias.userid = u.id AND $custalias.fieldid = $customfieldid ) ";                
+            $from .= "
+                LEFT OUTER JOIN
+                    {user_info_data} $custalias
+                ON
+                    ($custalias.userid = u.id AND
+                    $custalias.fieldid = $customfieldid )
+            ";
             $customfldcount++;
         }
     }
     $where = "u.deleted <> '1' AND u.username <> 'changeme' AND u.username <> 'guest'";
     if (!empty($search)) {
         $search = trim($search);
-        $where .= " AND ($fullname $LIKE '%$search%' OR u.email $LIKE '%$search%'"
-        ." OR u.institution $LIKE '%$search%' OR u.department $LIKE '%$search%' OR u.city $LIKE '%$search%'"
+        $where .= " AND ($fullname $like '%$search%' OR u.email $like '%$search%'"
+        ." OR u.institution $like '%$search%' OR u.department $like '%$search%' OR u.city $like '%$search%'"
         ." OR u.username LIKE '%$search%' ";
-        // Search also in custom fields, if required
-//            if ( $searchcustomfields  ) {
-//                $where .= " OR EXISTS ( SELECT * FROM {$CFG->prefix}user_info_data AS cst WHERE cst.userid = u.id AND cst.data $LIKE '%$search%' )";
-//            }
         if ( $searchcustomfields  && $customfieldstoshow ) {
             $customfldcount = 0;
-            foreach($customfieldstoshow as $customfield ) {
+            foreach($customfieldstoshow as $customfield) {
                 $customfieldid = $customfields[$customfield]->id;
                 $custalias = "cust$customfldcount";
                 $where .= " OR $custalias.data  LIKE '%$search%'";
-                $customfldcount++;                    
-            }                
+                $customfldcount++;
+            }
         }
         $where .= ' )';
     }
     if ($firstinitial) {
-        $where .= ' AND u.firstname '. $LIKE .' \''. $firstinitial .'%\' ';
+        $where .= ' AND u.firstname '. $like .' \''. $firstinitial .'%\' ';
     }
     if ($lastinitial) {
-        $where .= ' AND u.lastname '. $LIKE .' \''. $lastinitial .'%\' ';
+        $where .= ' AND u.lastname '. $like .' \''. $lastinitial .'%\' ';
     }
     if ($mnethostid) {
         $where .= " AND u.mnethostid = '$mnethostid' ";
@@ -431,7 +435,7 @@ $customfields=NULL ) {
     }
     $rolewhere = '';
     if ( $contextlevel && $contextinstanceid && $roleid ) {
-        $rolewhere = "AND " . (($donthaverole)?'NOT':'') . " EXISTS ( SELECT * FROM {role_assignments} ra, {context} c "
+        $rolewhere = "AND " . (($donthaverole) ? 'NOT' : '') . " EXISTS ( SELECT * FROM {role_assignments} ra, {context} c "
         . " WHERE ra.userid = u.id AND ra.contextid = c.id AND c.contextlevel = $contextlevel AND ra.roleid = $roleid";
         // Add filter by instanceID only if Context Level is NOT CONTEXT_SYSTEM (that always have instanceID = 0 )
         if ( $contextlevel != CONTEXT_SYSTEM ) {
@@ -444,17 +448,17 @@ $customfields=NULL ) {
     }
     $limitfrom = $page * $recordsperpage;
     $limitnum = $recordsperpage;
-    debugging( "Paging: PAGE $page, PERPAGE $recordsperpage",DEBUG_DEVELOPER);
-    debugging( "Paging: FROM $limitfrom, LIMIT $limitnum",DEBUG_DEVELOPER);
+    debugging( "Paging: PAGE $page, PERPAGE $recordsperpage", DEBUG_DEVELOPER);
+    debugging( "Paging: FROM $limitfrom, LIMIT $limitnum", DEBUG_DEVELOPER);
     // SQL for paged query
     $sql = "SELECT $selectlist FROM $from WHERE $where $rolewhere $sort ";
     debugging( "SQL: ".htmlentities($sql), DEBUG_DEVELOPER);
     // SQL for count query, w/o paging limit
     $sqlcount = "SELECT count(*) FROM $from WHERE $where $rolewhere";
-    //echo "<pre>Count: $sqlcount</pre>";
+    // echo "<pre>Count: $sqlcount</pre>";
     // Execute Count query first
     $searchcount = $DB->count_records_sql($sqlcount);
-    debugging( "The query should return $searchcount record(s)",DEBUG_DEVELOPER);
+    debugging( "The query should return $searchcount record(s)", DEBUG_DEVELOPER);
     // Execute full (paged) query
     $users = $DB->get_records_sql($sql, $limitfrom, $limitnum);
     return $users;
@@ -471,12 +475,12 @@ function useradmin_get_user_totalcount() {
  * Similar to optional_param() but returns $previousvalue if param is not set at all,
  * and returns $clearvalue if param is set to empty string
  */
-function useradmin_optional_param_clearing($paramname, $previousvalue=NULL, $clearvalue=NULL, $type=PARAM_CLEAN ) {
+function useradmin_optional_param_clearing($paramname, $previousvalue=null, $clearvalue=null, $type=PARAM_CLEAN ) {
     // detect_unchecked_vars addition
     global $CFG;
     if (!empty($CFG->detect_unchecked_vars)) {
-        global $UNCHECKED_VARS;
-        unset ($UNCHECKED_VARS->vars[$paramname]);
+        global $uncheckedvars;
+        unset ($uncheckedvars->vars[$paramname]);
     }
     // if is empty string, return clear value
     if ( array_key_exists($paramname, $_REQUEST) && $_REQUEST[$paramname] === '' ) {
@@ -497,7 +501,7 @@ function useradmin_optional_param_clearing($paramname, $previousvalue=NULL, $cle
  * If collapsed, text is replaced by ellipses with alt-text (if available) or full text,
  * as tooltip
  */
-function useradmin_collapsable_text($text, $showfull = TRUE, $alttext = NULL) {
+function useradmin_collapsable_text($text, $showfull = true, $alttext = null) {
     // If string is empty, return empty string
     if ( !$text  ){
         return '';
@@ -508,8 +512,8 @@ function useradmin_collapsable_text($text, $showfull = TRUE, $alttext = NULL) {
     }
     // return ellipsed text (using overLIB)
     else {
-        $tooltiptext = ($alttext)?(s($alttext)):(s($text));
-        //            return "<a class=\"tooltip\" hrep=\"#\" >...<span>$tooltiptext</span></a>";
+        $tooltiptext = ($alttext) ? (s($alttext)) : (s($text));
+        // return "<a class=\"tooltip\" hrep=\"#\" >...<span>$tooltiptext</span></a>";
         return  "<a href=\"javascript:void(0);\" onmouseover=\"return overlib('$tooltiptext',HAUTO);\" onmouseout=\"return nd();\">...</a>";
     }
 }
@@ -518,11 +522,11 @@ function useradmin_collapsable_text($text, $showfull = TRUE, $alttext = NULL) {
  * @return array $contextlevel=>$name
  */
 function useradmin_get_context_levels() {
-    $contextlevels = array();
+    $contextlevels = [];
     // manage only Course, Category and System
-    $contextlevels[CONTEXT_SYSTEM] = get_string('CONTEXT_SYSTEM','block_useradmin');
-    $contextlevels[CONTEXT_COURSECAT] = get_string('CONTEXT_COURSECAT','block_useradmin');
-    $contextlevels[CONTEXT_COURSE] = get_string('CONTEXT_COURSE','block_useradmin');
+    $contextlevels[CONTEXT_SYSTEM] = get_string('CONTEXT_SYSTEM', 'block_useradmin');
+    $contextlevels[CONTEXT_COURSECAT] = get_string('CONTEXT_COURSECAT', 'block_useradmin');
+    $contextlevels[CONTEXT_COURSE] = get_string('CONTEXT_COURSE', 'block_useradmin');
     return $contextlevels;
 }
 /**
@@ -532,7 +536,7 @@ function useradmin_get_context_levels() {
  * @return array $contextid=>$name
  */
 function useradmin_get_contexts_by_level($contextlevel) {
-    $contextnames = array();
+    $contextnames = [];
     switch ($contextlevel) {
         case CONTEXT_SYSTEM:
             $site = get_site();
@@ -570,16 +574,21 @@ function useradmin_get_contexts_by_level($contextlevel) {
  * @return array of roles. Empty if any param is invalid or unspecified
  */
 function useradmin_get_available_roles($contextlevel = '', $contextinstanceid = '') {
-    $roles = array();
-    
+    $roles = [];
+
     switch($contextlevel) {
-        case CONTEXT_SYSTEM: $contextname = 'system'; break;
-        case CONTEXT_COURSECAT: $contextname = 'coursecat'; break;
-        case CONTEXT_COURSE: $contextname = 'course'; break;
-        case CONTEXT_MOD: $contextname = 'module'; break;
-        case CONTEXT_BLOCK: $contextname = 'block'; break;
+        case CONTEXT_SYSTEM: $contextname = 'system';
+break;
+        case CONTEXT_COURSECAT: $contextname = 'coursecat';
+break;
+        case CONTEXT_COURSE: $contextname = 'course';
+break;
+        case CONTEXT_MOD: $contextname = 'module';
+break;
+        case CONTEXT_BLOCK: $contextname = 'block';
+break;
     }
-    
+
     if ( $contextlevel && $contextinstanceid ) {
         $func = 'context_'.$contextname.'::instance';
         $context = $func($contextlevel, $contextinstanceid);
@@ -590,7 +599,7 @@ function useradmin_get_available_roles($contextlevel = '', $contextinstanceid = 
     } else {
         $allroles = get_all_roles();
         foreach ($allroles as $role) {
-            $roles[$role->id] = $role->name ;
+            $roles[$role->id] = $role->name;
         }
     }
     return $roles;
@@ -601,8 +610,8 @@ function useradmin_get_available_roles($contextlevel = '', $contextinstanceid = 
  */
 function useradmin_get_role($roleid) {
     global $DB;
-    
-    return $DB->get_record("role", array("id" => $roleid));
+
+    return $DB->get_record("role", ["id" => $roleid]);
 }
 
 /**
@@ -610,16 +619,16 @@ function useradmin_get_role($roleid) {
  */
 function userdmin_user_has_role_in_context($userid, $contextid, $roleid) {
     global $DB;
-    return $DB->record_exists('role_assignments', array('userid' => $userid, 'contextid' => $contextid, 'roleid' => $roleid));
+    return $DB->record_exists('role_assignments', ['userid' => $userid, 'contextid' => $contextid, 'roleid' => $roleid]);
 }
 
 function useradmin_get_available_mnet_hosts() {
     global $CFG, $DB;
 
-    $availablehosts = array();
+    $availablehosts = [];
     $hosts = $DB->get_records('mnet_host');
     // Local host first
-    $availablehosts[$CFG->mnet_localhost_id] = get_string("localhost","block_useradmin");
+    $availablehosts[$CFG->mnet_localhost_id] = get_string("localhost", "block_useradmin");
     foreach ($hosts as $host) {
         // Skip local host and All Hosts
         if ( ($host->id != $CFG->mnet_localhost_id) && $host->wwwroot) {
@@ -641,7 +650,7 @@ function useradmin_get_available_auth_plugins() {
     // get currently installed and enabled auth plugins
     $authsavailable = get_list_of_plugins('auth');
     // Load all plugins
-    $authplugins = array();
+    $authplugins = [];
     foreach ($authsavailable as $auth) {
         $authplugin = get_auth_plugin($auth);
         if ( array_key_exists($authplugin->authtype, $usedauths)) {
@@ -661,15 +670,16 @@ function useradmin_authfilter_options( $authplugins = null) {
     if (!$authplugins ) {
         $authplugins = useradmin_get_available_auth_plugins();
     }
-    $authfilter_options = array();
+    $authfilteroptions = [];
     // Manual
-    $authfilter_options['manual'] = 'manual';
+    $authfilteroptions['manual'] = 'manual';
     // Others
     foreach ($authplugins as $authplugin) {
-        if ( $authplugin->authtype != 'manual')
-        $authfilter_options[$authplugin->authtype] = $authplugin->authtype;
+        if ( $authplugin->authtype != 'manual') {
+            $authfilteroptions[$authplugin->authtype] = $authplugin->authtype;
+        }
     }
-    return $authfilter_options;
+    return $authfilteroptions;
 }
 
 /**
@@ -683,10 +693,10 @@ function useradmin_authfilter_options( $authplugins = null) {
  * @param $skipline The file row will be skipped?
  *
  */
-function useradmin_uploaduser_notify($linenum, $message, $iserror = FALSE, $userid=NULL, $username=null, $skipline=FALSE) {
+function useradmin_uploaduser_notify($linenum, $message, $iserror = false, $userid=null, $username=null, $skipline=false) {
     $msg = get_string('linenumber', 'block_user_delegation', $linenum).'  - ';
     if($username){
-        $msg = $msg . get_string('username','block_user_delegation', $username).' - ';
+        $msg = $msg . get_string('username', 'block_user_delegation', $username).' - ';
     }
     if ($userid) {
         $msg = $msg."(id:$userid) ";
@@ -696,9 +706,9 @@ function useradmin_uploaduser_notify($linenum, $message, $iserror = FALSE, $user
         $msg = $msg.' - '.get_string('skipthisline', 'block_user_delegation');
     }
     if ( $iserror ) {
-        $fontcolor = '#DC143C'; //red
+        $fontcolor = '#DC143C'; // red
     } else {
-        $fontcolor = '#228B22'; //green
+        $fontcolor = '#228B22'; // green
     }
     return "<span style='color:$fontcolor; padding-left: 20px;'>".$msg."</span><br />";
 }
@@ -711,8 +721,8 @@ function useradmin_uploaduser_notify($linenum, $message, $iserror = FALSE, $user
  * @param string $username username of the affected user (if any)
  * @param boolean $skipline will this line be skipped (error) or not (just a warning)?
  */
-function useradmin_uploaduser_notify_error($linenum, $message, $userid=NULL, $username=NULL, $skipline=FALSE) {
-    return useradmin_uploaduser_notify($linenum, $message, TRUE, $userid, $username, $skipline);
+function useradmin_uploaduser_notify_error($linenum, $message, $userid=null, $username=null, $skipline=false) {
+    return useradmin_uploaduser_notify($linenum, $message, true, $userid, $username, $skipline);
 }
 
 /**
@@ -722,8 +732,8 @@ function useradmin_uploaduser_notify_error($linenum, $message, $userid=NULL, $us
  * @param int $userid ID of the affected user (if any)
  * @param string $username username of the affected user (if any)
  */
-function useradmin_uploaduser_notify_success($linenum, $message, $userid=NULL, $username=null) {
-    return useradmin_uploaduser_notify($linenum, $message, FALSE, $userid, $username, FALSE);
+function useradmin_uploaduser_notify_success($linenum, $message, $userid=null, $username=null) {
+    return useradmin_uploaduser_notify($linenum, $message, false, $userid, $username, false);
 }
 
 /**
@@ -780,31 +790,31 @@ function useradmin_get_all_users($includeunconfirmed=false, $includeremote=false
 function useradmin_get_users_courses_roles() {
     global $CFG, $DB;
 
-    $users_courses_roles = array();
+    $userscoursesroles = [];
     $sql = "SELECT ra.id, u.id AS userid, c.id AS courseid, r.id AS roleid, r.shortname AS roleshortname, c.shortname AS courseshortname, u.lastname, u.firstname,"
             ." ra.timestart AS enrol_start, ra.timeend AS enrol_end, ra.timemodified AS enrol_date, ra.enrol AS enrol_mode"
     ." FROM {user} u, {role_assignments} ra, {role} r, {context} ctx, {course} c"
     ." WHERE u.id = ra.userid AND ra.roleid = r.id AND ra.contextid = ctx.id AND ctx.instanceid = c.id"
     .     " AND u.deleted = 0 AND ctx.contextlevel = ".CONTEXT_COURSE;
-    //              ." ORDER BY u.id ASC, c.id ASC, r.sortorder ASC";
-    //echo "<p><pre>$sql</pre></p>";
+    // ." ORDER BY u.id ASC, c.id ASC, r.sortorder ASC";
+    // echo "<p><pre>$sql</pre></p>";
     $records = $DB->get_records_sql($sql);
     if ( $records ) {
         foreach ($records as $record) {
-            if (!isset($users_courses_roles[$record->userid])) {
-                $users_courses_roles[$record->userid] = array();
+            if (!isset($userscoursesroles[$record->userid])) {
+                $userscoursesroles[$record->userid] = [];
             }
-            if (!isset($users_courses_roles[$record->userid][$record->courseid])) {
-                $users_courses_roles[$record->userid][$record->courseid] = array();
+            if (!isset($userscoursesroles[$record->userid][$record->courseid])) {
+                $userscoursesroles[$record->userid][$record->courseid] = [];
             }
-            if (!isset($users_courses_roles[$record->userid][$record->courseid][$record->roleid])) {
-                $users_courses_roles[$record->userid][$record->courseid][$record->roleid] = array();
+            if (!isset($userscoursesroles[$record->userid][$record->courseid][$record->roleid])) {
+                $userscoursesroles[$record->userid][$record->courseid][$record->roleid] = [];
             }
-            $users_courses_roles[$record->userid][$record->courseid][$record->roleid] = $record;
-            //echo "<p>$record->lastname $record->firstname: $record->courseshortname,$record->roleshortname</p>";
+            $userscoursesroles[$record->userid][$record->courseid][$record->roleid] = $record;
+            // echo "<p>$record->lastname $record->firstname: $record->courseshortname,$record->roleshortname</p>";
         }
     }
-    return $users_courses_roles;
+    return $userscoursesroles;
 }
 
 /**
@@ -812,7 +822,7 @@ function useradmin_get_users_courses_roles() {
  * @return int
  */
 function useradmin_count_emailstop_users() {
-    $countemailstopusers = $DB->count_records('user', array('deleted' => '0', 'emailstop' => '1'));
+    $countemailstopusers = $DB->count_records('user', ['deleted' => '0', 'emailstop' => '1']);
     return $countemailstopusers;
 }
 
@@ -839,8 +849,8 @@ function useradmin_check_email($email) {
     }
     // Check domain
     else {
-        list($mailUser, $mailDomain) = split('@',$email);
-        if (!useradmin_checkdns($mailDomain) ) {
+        list($mailuser, $maildomain) = split('@', $email);
+        if (!useradmin_checkdns($maildomain) ) {
             debugging("Address $email domain is invalid", DEBUG_DEVELOPER);
             return MAILCHK_INVALIDDOMAIN;
         }
@@ -853,31 +863,31 @@ function useradmin_check_email($email) {
  * @param $hostName
  * @return unknown_type
  */
-function useradmin_checkdns($mailDomain) {
+function useradmin_checkdns($maildomain) {
     // If this is a Windows Server
-    //        debugging("Checking DNS for MX of domain $mailDomain", DEBUG_DEVELOPER);
-    if  ( stristr($_SERVER['SERVER_SOFTWARE'],'microsoft') || stristr($_SERVER['SERVER_SOFTWARE'],'win32') ) {
-        //            debugging("Using Win32 NSLOOKUP", DEBUG_DEVELOPER);
-        if(!empty($mailDomain)) {
-            $result = array();
-            exec('nslookup -type=MX '.escapeshellcmd($mailDomain), $result);
+    // debugging("Checking DNS for MX of domain $mailDomain", DEBUG_DEVELOPER);
+    if  ( stristr($_SERVER['SERVER_SOFTWARE'], 'microsoft') || stristr($_SERVER['SERVER_SOFTWARE'], 'win32') ) {
+        // debugging("Using Win32 NSLOOKUP", DEBUG_DEVELOPER);
+        if(!empty($maildomain)) {
+            $result = [];
+            exec('nslookup -type=MX '.escapeshellcmd($maildomain), $result);
             // check each line to find the one that starts with the host
             // name. If it exists then the function succeeded.
             foreach ($result as $line) {
-                //                  if(eregi("^$mailDomain",$line)) {
-                if( stripos($line, $mailDomain) === 0 || stripos($line, 'timed out') !== false) { // If DNS timed out cannot say anything
+                // if(eregi("^$mailDomain",$line)) {
+                if( stripos($line, $maildomain) === 0 || stripos($line, 'timed out') !== false) { // If DNS timed out cannot say anything
                     return true;
                 }
             }
-            debugging("MX $mailDomain not found", DEBUG_DEVELOPER);
-            //                foreach ($result as $line)
-            //                  debugging("> $line", DEBUG_DEVELOPER);
+            debugging("MX $maildomain not found", DEBUG_DEVELOPER);
+            // foreach ($result as $line)
+            // debugging("> $line", DEBUG_DEVELOPER);
         }
         return false;
     }
     // Otherwise user true-OS version
     else {
-        return checkdnsrr($mailDomain, 'MX');
+        return checkdnsrr($maildomain, 'MX');
     }
 }
 
@@ -930,7 +940,7 @@ function useradmin_get_editingteacher_role($course) {
     if ($editingteacherroles = get_roles_with_capability('moodle/legacy:editingteacher', CAP_ALLOW)) {
         return array_shift($editingteacherroles);   /// Take the first one
     }
-    return NULL;
+    return null;
 }
 
 /**
@@ -942,7 +952,7 @@ function useradmin_get_teacher_role($course) {
     if ($teacherroles = get_roles_with_capability('moodle/legacy:teacher', CAP_ALLOW)) {
         return array_shift($teacherroles);   /// Take the first one
     }
-    return NULL;
+    return null;
 }
 
 /**
@@ -983,7 +993,7 @@ function useradmin_includecustomprofilefield($settings, $fieldshortname, $fieldn
  */
 function useradmin_customuserfields() {
     $fields = $DB->get_records_select('user_info_field', "", 'categoryid ASC, sortorder ASC');
-    $customfields = array();
+    $customfields = [];
     if (is_array($fields) ) {
         foreach($fields as $field) {
             $customfields[$field->shortname] = $field;
@@ -998,9 +1008,9 @@ function useradmin_customuserfields() {
  */
 function useradmin_customfieldstoshow() {
     global $CFG;
-    $customfieldstoshow = array();
-    foreach($CFG as $key=>$show) {
-        if ( strpos($key,'block_useradmin_include_') === 0 && $show ) {
+    $customfieldstoshow = [];
+    foreach($CFG as $key => $show) {
+        if ( strpos($key, 'block_useradmin_include_') === 0 && $show ) {
             $fieldname = substr($key, strlen('block_useradmin_include_') );
             $customfieldstoshow[] = $fieldname;
         }
@@ -1014,9 +1024,9 @@ function useradmin_customfieldstoshow() {
  */
 function useradmin_standardfieldstohide() {
     global $CFG;
-    $standardfieldstohide = array();
-    foreach($CFG as $key=>$hide) {
-        if ( strpos($key,'block_useradmin_hide_') === 0 && $hide ) {
+    $standardfieldstohide = [];
+    foreach($CFG as $key => $hide) {
+        if ( strpos($key, 'block_useradmin_hide_') === 0 && $hide ) {
             $fieldname = substr($key, strlen('block_useradmin_hide_') );
             $standardfieldstohide[] = $fieldname;
         }
@@ -1034,9 +1044,9 @@ function useradmin_standardfieldstohide() {
  * @return array that may be added to $table->data[]
  */
 function useradmin_userlisttablerow($user ) {
-    global $CFG, $USER, 
-        $standardfieldstohide, $customfieldstoshow, $expandcollapsefields, $standarduserfieldnames, $securewwwroot, 
-        $site, $mnet_auth_users_exists, $authplugins, $iconspacer, $stredit, $strdelete ;
+    global $CFG, $USER,
+        $standardfieldstohide, $customfieldstoshow, $expandcollapsefields, $standarduserfieldnames, $securewwwroot,
+        $site, $mnetauthusersexists, $authplugins, $iconspacer, $stredit, $strdelete;
     // Access $user as an array
     $userarray = get_object_vars($user);
     // Force to lowercase al field names (needed as PostgreSQL return custom fields as lowercase even if custom field name has mixed case)
@@ -1048,7 +1058,7 @@ function useradmin_userlisttablerow($user ) {
     $emailswitchbutton = '';
     // is the user remote?
     $isremoteuser = ($user->mnethostid != $CFG->mnet_localhost_id);
-    $tablerowdata = array();
+    $tablerowdata = [];
     foreach ($standarduserfieldnames as $standarduserfieldname) {
         switch ($standarduserfieldname) {
             case 'firstname':
@@ -1060,7 +1070,7 @@ function useradmin_userlisttablerow($user ) {
                 // Full name
                 $fullname = fullname($user, true);
                 // Edit user link (link only if user can edit)
-                $edituserlink =  s($fullname);
+                $edituserlink = s($fullname);
                 if ( useradmin_has_capabilities_to_edit() ) {
                     $edituserlink = " <a href=\"$securewwwroot/user/view.php?id=$user->id&amp;course=$site->id\">$edituserlink</a>";
                 }
@@ -1103,17 +1113,17 @@ function useradmin_userlisttablerow($user ) {
                 if ( !in_array('mnethostname', $standardfieldstohide) ) {
                     // Only if remote users exists...
                     if ( useradmin_has_capabilities_to_edit() ) {
-                        if ( $mnet_auth_users_exists ) {
+                        if ( $mnetauthusersexists ) {
                             if ( $isremoteuser ) {
                                 // Allow/Deny button (form remote users only)
                                 $accessctrl = 'allow';
-                                if ($acl = $DB->get_record('mnet_sso_access_control', array('username' => $user->username, 'mnet_host_id' => $user->mnethostid))) {
+                                if ($acl = $DB->get_record('mnet_sso_access_control', ['username' => $user->username, 'mnet_host_id' => $user->mnethostid])) {
                                     $accessctrl = $acl->accessctrl;
                                 }
-                                $strallowdeny = get_string( $accessctrl ,'mnet');
+                                $strallowdeny = get_string( $accessctrl , 'mnet');
                                 $changeaccessto = ($accessctrl == 'deny' ? 'allow' : 'deny');
-                                $strchangeto =  s(($changeaccessto == 'deny')?(get_string('allow_denymnetaccess', 'block_useradmin')):(get_string('deny_allowmnetaccess', 'block_useradmin')));
-                                $allowdenyiconurl = "$securewwwroot/pix/t/". (($accessctrl == 'allow')?'go.gif':'stop.gif') ;
+                                $strchangeto = s(($changeaccessto == 'deny') ? (get_string('allow_denymnetaccess', 'block_useradmin')) : (get_string('deny_allowmnetaccess', 'block_useradmin')));
+                                $allowdenyiconurl = "$securewwwroot/pix/t/". (($accessctrl == 'allow') ? 'go.gif' : 'stop.gif');
                                 $allowdenybutton = "<a href=\"?acl={$user->id}&amp;accessctrl=$changeaccessto&amp;sesskey={$USER->sesskey}\"><img src=\"$allowdenyiconurl\" alt=\"$strchangeto\" title=\"$strchangeto\" /></a>";
                                 // Remote Host
                                 $strremotehost .= s($user->mnethostname) . " $allowdenybutton";
@@ -1138,11 +1148,11 @@ function useradmin_userlisttablerow($user ) {
                                 $confirmbutton = $iconspacer;
                             }
                         } else {
-                            $strisconfirmed = get_string('n_a','block_useradmin');
+                            $strisconfirmed = get_string('n_a', 'block_useradmin');
                             $confirmbutton = $iconspacer;
                         }
                     }
-                    $tablerowdata[] = useradmin_collapsable_text( $strisconfirmed, $expandcollapsefields['confirmed'] ) ;
+                    $tablerowdata[] = useradmin_collapsable_text( $strisconfirmed, $expandcollapsefields['confirmed'] );
                 }
                 break;
             default:
@@ -1154,8 +1164,8 @@ function useradmin_userlisttablerow($user ) {
         }
     }
     // Custom fields columns
-    foreach ($customfieldstoshow as $custfield ) {
-        //$userarray = (array)$user;
+    foreach ($customfieldstoshow as $custfield) {
+        // $userarray = (array)$user;
         $tablerowdata[] = useradmin_collapsable_text(  s( $userarray[strtolower($custfield)]),  $expandcollapsefields["$custfield"] );
     }
     // Last column: Action buttons
@@ -1177,6 +1187,6 @@ function useradmin_userlisttablerow($user ) {
         }
     }
     $actionbuttons = $editbutton.' '.$deletebutton.' '.$confirmbutton;
-    $tablerowdata[] =  $actionbuttons;
+    $tablerowdata[] = $actionbuttons;
     return $tablerowdata;
 }

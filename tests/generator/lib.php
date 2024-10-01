@@ -15,23 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Test lib.
+ *
  * @package     block_user_delegation
- * @category    test
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
 
 /**
  * Page module data generator class
  *
- * @package    user_delegation
- * @category   test
- * @copyright  2012 Petr Skoda {@link http://skodak.org}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class user_delegation_generator extends testing_block_generator {
 
@@ -41,7 +35,7 @@ class user_delegation_generator extends testing_block_generator {
      * @param array $options
      * @return stdClass activity record with extra cmid field
      */
-    public function create_instance($record = null, array $options = null) {
+    public function create_instance($record = null, $options = null) {
         global $CFG;
 
         $this->instancecount++;
@@ -54,7 +48,7 @@ class user_delegation_generator extends testing_block_generator {
         $id = $DB->insert_record('block_instances', $record);
         context_block::instance($id);
 
-        $instance = $DB->get_record('block_instances', array('id'=>$id), '*', MUST_EXIST);
+        $instance = $DB->get_record('block_instances', ['id' => $id], '*', MUST_EXIST);
 
         return $instance;
     }

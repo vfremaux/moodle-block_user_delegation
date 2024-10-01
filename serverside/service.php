@@ -15,13 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Server side services
+ *
  * @package     block_user_delegation
- * @category    blocks
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @author      Wafa Adham <admin@adham.ps>
+ * @author      Wafa Adham <admin@adham.ps>, Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require('../../../config.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/xlib.php');
@@ -37,11 +38,9 @@ if (!user_delegation_has_delegation_somewhere()) {
 $action = required_param('action', PARAM_TEXT);
 $sesskey = required_param('sesskey', PARAM_TEXT);
 
-if (!confirm_sesskey($sesskey)) {
-    print_error('errorinvalidsession', 'block_user_delegation');
-}
+require_sesskey($sesskey);
 
-// execute the necessary function, according to the operation code in the post variables
+// Execute the necessary function, according to the operation code in the post variables.
 switch ($action) {
 
     case 'CheckUserExist':
@@ -63,17 +62,17 @@ switch ($action) {
         break;
 
     case 'AttachUser':
-        $power_uid = required_param('puid', PARAM_TEXT);
-        $fellow_uid = required_param('fuid', PARAM_TEXT);
-        $result = userdelegation::attach_user($power_uid, $fellow_uid);
+        $poweruid = required_param('puid', PARAM_TEXT);
+        $fellowuid = required_param('fuid', PARAM_TEXT);
+        $result = userdelegation::attach_user($poweruid, $fellowuid);
         $data = new StdClass();
         $data->result = $result;
         echo json_encode($data);
         break;
 
     case 'GetCourseGroups':
-        $course_id = required_param('cid', PARAM_TEXT);
-        $result = groups_get_all_groups($course_id);
+        $courseid = required_param('cid', PARAM_TEXT);
+        $result = groups_get_all_groups($courseid);
         $data = new StdClass();
         $data->result = $result;
 

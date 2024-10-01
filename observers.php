@@ -15,29 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Event observers
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 
 /**
- * Observes role assignements and add hasasbehalf/isbehalfof 
+ * Observes role assignements and add hasasbehalf/isbehalfof
  * It will search for an hasbehalfon enabled role in the nearest context
  * This event will be executed by admin/tool/sync users management with group assigns
  * @see (non standard) admin/tool/sync
  */
 class block_user_delegation_event_observer {
 
-    function on_group_member_added($eventdata) {
+    /**
+     * When a user moves to another group in which we have user_delegated owners
+     * attach to them. If it is a user owner, get all present users as behalfed.
+     * @param object $eventdata
+     */
+    public function on_group_member_added($eventdata) {
         global $DB;
 
         $userid = $eventdata->userid;
-        $group = $DB->get_record('groups', array('id' => $eventdata->objectid));
+        $group = $DB->get_record('groups', ['id' => $eventdata->objectid]);
 
         $context = context_course::instance($group->courseid);
 

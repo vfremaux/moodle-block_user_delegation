@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * Uninstall sequence.
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,11 +29,11 @@ defined('MOODLE_INTERNAL') || die();
 function xmldb_block_user_delegation_uninstall() {
     global $CFG, $DB;
 
-    // switch to legacy editing teacher when bloc is removed from Moodle.
-    if ($corole = $DB->get_record('role', array('shortname' => 'courseowner'))) {
+    // Switch to legacy editing teacher when bloc is removed from Moodle.
+    if ($corole = $DB->get_record('role', ['shortname' => 'courseowner'])) {
 
-        $legacyrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
-        $DB->delete_records('role', array('shortname' => 'courseowner'));
+        $legacyrole = $DB->get_record('role', ['shortname' => 'editingteacher']);
+        $DB->delete_records('role', ['shortname' => 'courseowner']);
 
         $sql = "
             UPDATE
@@ -46,7 +45,7 @@ function xmldb_block_user_delegation_uninstall() {
         ";
 
         $DB->execute($sql);
-        $DB->delete_records('config', array('name' => 'block_user_delegation_co_role'));
+        $DB->delete_records('config', ['name' => 'block_user_delegation_co_role']);
 
         unset($CFG->block_user_delegation_co_role);
     }

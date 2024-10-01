@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Lang file
+ *
+ * @package   block_user_delegation
+ * @author    Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 $string['user_delegation:addinstance'] = 'Peut ajouter une instance';
 $string['user_delegation:myaddinstance'] = 'Peut ajouter une instance aux pages personnalisées';
 $string['user_delegation:canbulkaddusers'] = 'Peut importer des utilisateurs';
@@ -29,7 +38,7 @@ $string['user_delegation:view'] = 'Peut voir le bloc';
 $string['addnewgroup'] = 'Ajouter un nouveau groupe....';
 $string['addbulkusers'] = 'Ajouter un lot d\'utilisateurs';
 $string['attachtome'] = 'M\\\'attacher cet utilisateur'; // Js surescaping.
-$string['backtocourse'] = 'Revenir au cours'; 
+$string['backtocourse'] = 'Revenir au cours';
 $string['backtohome'] = 'Revenir à la page d\'accueil';
 $string['badblockid'] = 'ID de bloc invalide';
 $string['blockname'] = 'Administration déléguée des utilisateurs';
@@ -131,7 +140,7 @@ $string['userbulkcreated'] = 'Compte utilisateur {$a->username} créé pour {$a-
 $string['userbulkexists'] = 'L\'utilisateur {$a->firstname} {$a->lastname} existe avec l\'identifiant {$a->username}.';
 $string['useradded'] = 'Utilisateur ajouté à vos utilisateurs.';
 $string['userenrolled'] = 'Utilisateur inscrit dans le cours {$a}';
-$string['userexists'] = 'L\\\'utilisateur existe déjà'; // js surescaping
+$string['userexists'] = 'L\\\'utilisateur existe déjà'; // Js surescaping.
 $string['usermanagementoptions'] = 'Options de gestion des utilisateurs';
 $string['username'] = 'Utilisateur : {$a} ';
 $string['usernotaddederror'] = 'L\'utilisateur n\'a pas pu être créé';
@@ -164,8 +173,8 @@ Le champ "email" peut contenir le code d\'absence d\'adresse de courriel (NOMAIL
 
 <p><code>city</code> pour la ville (en majuscules), <code>institution</code>, <code>department</code>, <code>country</code> (FR, UK), <code>lang>/code> (fr,en,es,...) <!-- auth, ajax, timezone, idnumber, icq, --> phone1, phone2, address, url, description <!--, mailformat, maildisplay, htmleditor, autosubscribe, emailstop --></p>
 
-<p><b>Champs de profil personnalisés</b> : optionnel, xxxxx doit être remplacé par le nom abrégé du champ personnalisé. L\'administrateur de Moodle devrait avoir publié à votre intention des instructions concernant 
-les champs supplémentaires supportés par cette plate-forme.</p>
+<p><b>Champs de profil personnalisés</b> : optionnel, xxxxx doit être remplacé par le nom abrégé du champ personnalisé. L\'administrateur de Moodle devrait avoir publié à votre intention des instructions concernant
+ les champs supplémentaires supportés par cette plate-forme.</p>
 
     <code>profile_field_xxxxx</code>
 
@@ -191,4 +200,4 @@ Si vous laissez Moodle générer les mots de passe, vous n\'aurez aucune connais
 Les mots de passe sont envoyés automatiquement aux utilisateur sur leur adresse de courriel déclarée dans le fichier. Elle doit donc être valide.
 ';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');

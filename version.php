@@ -18,7 +18,6 @@
  * Version details.
  *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

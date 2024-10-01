@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Upload users
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,7 +35,7 @@ require_once($CFG->libdir.'/uploadlib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/useradminlib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
-require_once($CFG->dirroot.'/blocks/user_delegation/uploaduser_form.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/forms/uploaduser_form.php');
 
 $url = new moodle_url('/blocks/user_delegation/uploaduser.php');
 $PAGE->set_url($url);
@@ -42,18 +43,14 @@ $PAGE->set_url($url);
 $courseid = optional_param('course', SITEID, PARAM_INT);
 $blockid = required_param('id', PARAM_INT); // The block id.
 
-if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
-    print_error('badblockid', 'block_user_delegation');
-}
+$instance = $DB->get_record('block_instances', ['id' => $blockid], '*', MUST_EXIST);
 
 $theblock = block_instance('user_delegation', $instance);
 
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/uploaduser.php?id='.$courseid);
 
-if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('coursemisconf');
-}
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST)
 
 $config = get_config('block_user_delegation');
 
@@ -74,7 +71,7 @@ if (has_capability('block/user_delegation:canbulkaddusers', $blockcontext)) {
 }
 
 if (!$canaddbulk) {
-    redirect(new moodle_url('/course/view.php', array('id' => $courseid)));
+    redirect(new moodle_url('/course/view.php', ['id' => $courseid]));
 }
 
 $csvseparator = optional_param('fieldseparator', $config->csvseparator, PARAM_TEXT);
@@ -106,7 +103,7 @@ $struploaduser = get_string('uploadusers', 'block_user_delegation');
 $strblockname = get_string('blockname', 'block_user_delegation');
 
 $PAGE->set_context($usercontext);
-$params = array('id' => $blockid, 'course' => $courseid);
+$params = ['id' => $blockid, 'course' => $courseid];
 $PAGE->navbar->add($strblockname, new moodle_url('/blocks/user_delegation/myusers.php', $params));
 $PAGE->navbar->add($struploaduser);
 $PAGE->set_pagelayout('admin');
@@ -117,13 +114,13 @@ if (block_user_delegation_supports_feature('users/enrol')) {
     $coursearr = block_user_delegation_get_owned_courses();
 }
 
-$mform = new UploadUserForm($url, array('courses' => $coursesarr));
+$mform = new UploadUserForm($url, ['courses' => $coursesarr]);
 
 if ($mform->is_cancelled()) {
-    $myusersurl = new moodle_url('/blocks/user_delegation/myusers.php', array('courseid' => $course->id, 'id' => $blockid));
+    $myusersurl = new moodle_url('/blocks/user_delegation/myusers.php', ['course' => $course->id, 'id' => $blockid]);
     redirect($myusersurl);
 }
-if($data = $mform->get_data()) {
+if ($data = $mform->get_data()) {
     include($CFG->dirroot.'/blocks/user_delegation/uploaduser.controller.php');
 }
 
@@ -134,7 +131,7 @@ echo $OUTPUT->heading_with_help($struploaduser, 'uploadusers', 'block_user_deleg
 
 echo '<div class="userpage-toolbar">';
 echo $OUTPUT->pix_icon('users', '', 'block_user_delegation');
-$usersreturnurl = new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid));
+$usersreturnurl = new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $courseid]);
 echo '<a href="'.$usersreturnurl.'">'.get_string('myusers', 'block_user_delegation').'</a>';
 print '</div>';
 

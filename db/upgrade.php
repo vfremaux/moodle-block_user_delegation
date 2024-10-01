@@ -15,12 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   block_shop_access
- * @category  blocks
+ * Standard upgrade sequence
+ *
+ * @package   block_user_delegation
  * @author    Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard upgrade handler.
@@ -37,7 +38,7 @@ function xmldb_block_user_delegation_upgrade($oldversion = 0) {
         $syscontext = context_system::instance();
 
         $shortname = 'courseowner';
-        if ($role = $DB->get_record('role', array('shortname' => $shortname))) {
+        if ($role = $DB->get_record('role', ['shortname' => $shortname])) {
             assign_capability('block/user_delegation:candeleteusers', CAP_ALLOW, $role->id, $syscontext->id, true);
         }
 

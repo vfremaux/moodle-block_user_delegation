@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Simple user form.
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,9 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
+/**
+ * Form definition class.
+ */
 class user_editsimple_form extends moodleform {
 
-    // Define the form.
+    /**
+     * Standard definition.
+     */
     public function definition() {
         global $USER, $CFG, $COURSE;
 
@@ -67,7 +73,7 @@ class user_editsimple_form extends moodleform {
 
         if (is_object($this->_customdata['user'])) {
             if (!userdelegation::has_other_owners($this->_customdata['user']->id)) {
-                $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
+                $mform->addElement('advcheckbox', 'suspended', get_string('suspended', 'auth'));
                 $mform->addHelpButton('suspended', 'suspended', 'auth');
             }
         }
@@ -75,7 +81,7 @@ class user_editsimple_form extends moodleform {
         if (!empty($CFG->passwordpolicy)) {
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
- 
+
         $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"');
         $mform->addHelpButton('newpassword', 'newpassword');
         $mform->setType('newpassword', PARAM_RAW);
@@ -91,7 +97,8 @@ class user_editsimple_form extends moodleform {
         if (is_null($this->_customdata['user'])) {
             $btnstring = get_string('createuser');
             if (!empty($this->_customdata['courses'])) {
-                $mform->addElement('select', 'coursetoassign', get_string('coursetoassign', 'block_user_delegation'), $this->_customdata['courses']);
+                $lbl = get_string('coursetoassign', 'block_user_delegation');
+                $mform->addElement('select', 'coursetoassign', $lbl, $this->_customdata['courses']);
             }
         } else {
             $btnstring = get_string('update');
@@ -102,6 +109,12 @@ class user_editsimple_form extends moodleform {
         $this->add_action_buttons(true, $btnstring);
     }
 
+    /**
+     * Shared fields.
+     * @param object $mform
+     * @param array $editoroptions
+     * @param array $filemanageroptions
+     */
     protected function useredit_shared_fields($mform, $editoroptions, $filemanageroptions) {
         global $CFG;
 
@@ -128,7 +141,7 @@ class user_editsimple_form extends moodleform {
         $mform->setAdvanced('department');
 
         $choices = get_string_manager()->get_list_of_countries();
-        $choices = array('' => get_string('selectacountry').'...') + $choices;
+        $choices = ['' => get_string('selectacountry').'...'] + $choices;
         $mform->addElement('select', 'country', get_string('selectacountry'), $choices);
         $mform->addRule('country', $strrequired, 'required', null, 'client');
         if (!empty($CFG->country)) {
@@ -147,12 +160,15 @@ class user_editsimple_form extends moodleform {
         $mform->setType('lang', PARAM_TEXT);
     }
 
+    /**
+     * Changes the form after data is loaded.
+     */
     public function definition_after_data() {
         global $USER, $DB;
 
         $mform =& $this->_form;
         if ($userid = $mform->getElementValue('id')) {
-            $user = $DB->get_record('user', array('id' => $userid));
+            $user = $DB->get_record('user', ['id' => $userid]);
         } else {
             $user = false;
         }
@@ -162,13 +178,13 @@ class user_editsimple_form extends moodleform {
             $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
         }
 
-        if ($user and is_mnet_remote_user($user)) {
+        if ($user && is_mnet_remote_user($user)) {
             // Only local accounts can be suspended.
             if ($mform->elementExists('suspended')) {
                 $mform->removeElement('suspended');
             }
         }
-        if ($user and ($user->id == $USER->id or is_siteadmin($user))) {
+        if ($user && ($user->id == $USER->id || is_siteadmin($user))) {
             // Prevent self and admin mess ups.
             if ($mform->elementExists('suspended')) {
                 $mform->hardFreeze('suspended');
@@ -179,17 +195,20 @@ class user_editsimple_form extends moodleform {
         profile_definition_after_data($mform, $userid);
     }
 
+    /**
+     * Standard validation.
+     */
     public function validation($usernew, $files) {
         global $CFG, $DB;
 
         $usernew = (object)$usernew;
         $usernew->username = trim($usernew->username);
 
-        $user = $DB->get_record('user', array('id'=>$usernew->id));
-        $err = array();
+        $user = $DB->get_record('user', ['id' => $usernew->id]);
+        $err = [];
 
         if (!empty($usernew->newpassword)) {
-            $errmsg = '';//prevent eclipse warning
+            $errmsg = '';
             if (!check_password_policy($usernew->newpassword, $errmsg)) {
                 $err['newpassword'] = $errmsg;
             }
@@ -198,9 +217,9 @@ class user_editsimple_form extends moodleform {
         if (empty($usernew->username)) {
             // Might be only whitespace.
             $err['username'] = get_string('required');
-        } else if (!$user or $user->username !== $usernew->username) {
+        } else if (!$user || $user->username !== $usernew->username) {
             // Check new username does not exist.
-            $params = array('username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id);
+            $params = ['username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id];
             if ($DB->record_exists('user', $params)) {
                 $err['username'] = get_string('usernameexists');
             }
@@ -214,8 +233,8 @@ class user_editsimple_form extends moodleform {
             }
         }
 
-        if (!$user or $user->email !== $usernew->email) {
-            $params = array('email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id);
+        if (!$user || $user->email !== $usernew->email) {
+            $params = ['email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id];
             if (!validate_email($usernew->email)) {
                 $err['email'] = get_string('invalidemail');
             } else if ($DB->record_exists('user', $params)) {
@@ -226,12 +245,10 @@ class user_editsimple_form extends moodleform {
         // Next the customisable profile fields.
         $err += profile_validation($usernew, $files);
 
-        if (count($err) == 0){
+        if (count($err) == 0) {
             return true;
         } else {
             return $err;
         }
     }
 }
-
-

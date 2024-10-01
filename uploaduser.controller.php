@@ -15,18 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * MVC controller for upload
+ *
  * @package    block_user_delegation
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/user_delegation/classes/userdelegation.class.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
 
 // Fix the weird POST bounce form field loss when ajax changing a form.
-$data->grouptoassign = clean_param(@$_REQUEST['grouptoassign'], PARAM_TEXT);
+$data->grouptoassign = clean_param($_REQUEST['grouptoassign'] ?? '', PARAM_TEXT);
 
 $fs = get_file_storage();
 $usercontext = context_user::instance($USER->id);
@@ -56,32 +59,32 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     $text = block_user_delegation::trim_utf8_bom($text);
 
     // Fix mac/dos newlines.
-    $text = preg_replace('!\r\n?!',"\n", $text);
+    $text = preg_replace('!\r\n?!', "\n", $text);
 
     $lines = explode("\n", $text);
     $log = '';
 
     if (empty($lines)) {
-        print_error('emptyfile', 'block_user_delegation');
+        throw new moodle_exception('emptyfile', 'block_user_delegation');
     }
 
     // Make arrays of valid fields for error checking.
-    $requiredFields = array(
+    $requiredfields = [
         'username' => 1,
         'password' => !$data->createpassword,
         'firstname' => 1,
         'lastname' => 1,
-        'email' => 1
-    );
+        'email' => 1,
+    ];
 
-    $cloneUSERFields = array(
+    $cloneuserfields = [
         'mnethostid' => 1,
         'institution' => 1,
-        'department' => 1
-    );
+        'department' => 1,
+    ];
 
     // Optional fields.
-    $optionalFields = array(
+    $optionalfields = [
         'mnethostid' => 1,
         'institution' => 1,
         'department' => 1,
@@ -113,14 +116,14 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'screenreader' => 1,
         'suspended' => 1,
         'deleted' => 1,
-        'oldusername' => 1
-    );
+        'oldusername' => 1,
+    ];
 
-    $metas = array(
-            'profile_field_.*');
+    $metas = [
+            'profile_field_.*'];
 
     // Default values for optional fields (only for  NOT null fields without DEFAULT in db schema).
-    $optionalDefaults = array(
+    $optionaldefaults = [
         'idnumber' => '',
         'cohort' => '',
         'cohortid' => '',
@@ -144,11 +147,11 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         'auth' => 'manual',
         'deleted' => 0,
         'suspended' => 0,
-        'mnethostid' => $CFG->mnet_localhost_id
-    );
+        'mnethostid' => $CFG->mnet_localhost_id,
+    ];
 
     // String fields length.
-    $field_length = array ('username' => 100,
+    $fieldlength = ['username' => 100,
                         'password' => 32,
                         'firstname' => 100,
                         'lastname' => 100,
@@ -172,7 +175,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                         'address' => 70,
                         'url' => 255,
                         'description' => 255,
-                        'oldusername' => 100);
+                        'oldusername' => 100];
 
     // Get header (field names).
     $l = array_shift($lines);
@@ -191,13 +194,13 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         }
 
         if (!$ismeta) {
-            if (!(array_key_exists($h, $requiredFields)) && !(array_key_exists($h, $optionalFields))) {
+            if (!(array_key_exists($h, $requiredfields)) && !(array_key_exists($h, $optionalfields))) {
                 echo $OUTPUT->notification(get_string('invalidfieldname_areyousure', 'block_user_delegation', $h));
-                print_error('invalidfieldname_areyousure', 'block_user_delegation', '', $h);
+                throw new moodle_exception('invalidfieldname_areyousure', 'block_user_delegation', '', $h);
             }
-            if (array_key_exists($h, $requiredFields)) {
+            if (array_key_exists($h, $requiredfields)) {
                 // Release required field as we know it is present in file.
-                $requiredFields[$h] = 0;
+                $requiredfields[$h] = 0;
             }
         }
     }
@@ -205,10 +208,10 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     $hcount = count($header);
 
     // Check for required fields.
-    foreach ($requiredFields as $key => $value) {
+    foreach ($requiredfields as $key => $value) {
         if ($value) {
             // Required field missing, as still marked for requirement.
-            print_error('fieldrequired', 'error', '', $key);
+            throw new moodle_exception('fieldrequired', 'error', '', $key);
         }
     }
     $linenum = 1; // Since header is line 0.
@@ -231,13 +234,13 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         $log .= '<hr />';
 
         // Setup optional-fields-with-admin-defaults using the operator's own information.
-        foreach ($cloneUSERFields as $key => $value) {
+        foreach ($cloneuserfields as $key => $value) {
             $user->$key = $USER->$key;
         }
 
         // Setup optional-fields defaults.
-        foreach ($optionalDefaults as $key => $value ) {
-            $user->$key =  $optionalDefaults[$key];
+        foreach ($optionaldefaults as $key => $value) {
+            $user->$key = $optionaldefaults[$key];
         }
 
         // Note: separator within a field should be encoded as &#XX (for semicolon separated csv files).
@@ -252,7 +255,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
             $lcount = count($line);
             if ($lcount != $hcount) {
-                $log .= useradmin_uploaduser_notify_error($linenum, get_string('errorcountdiff', 'block_user_delegation'), null, null, null);
+                $msg = get_string('errorcountdiff', 'block_user_delegation');
+                $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, null, null);
             }
             $record = array_combine($header, $line);
 
@@ -267,21 +271,24 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 $value = trim($value);
 
                 // Truncate string fields.
-                if (isset($field_length[$name]) && strlen($value) > $field_length[$name] ) {
-                    $value = substr($value, 0, $field_length[$name] );
+                if (isset($fieldlength[$name]) && strlen($value) > $fieldlength[$name] ) {
+                    $value = substr($value, 0, $fieldlength[$name] );
                     $a = new StdClass();
                     $a->fieldname = $name;
-                    $a->length = $field_length[$name]; 
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('truncatefield', 'block_user_delegation', $a), null, $record['username'], null);
+                    $a->length = $fieldlength[$name];
+                    $msg = get_string('truncatefield', 'block_user_delegation', $a);
+                    $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $record['username'], null);
                 }
 
                 // TODO add other fields validation.
                 // Check for required values.
-                if (@$requiredFields[$name] && !$value) {
-                    $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', array('sesskey' => sesskey(), 'id' => $blockid, 'ocurse' => $courseid));
+                if (@$requiredfields[$name] && !$value) {
+                    $params = ['sesskey' => sesskey(), 'id' => $blockid, 'ocurse' => $courseid];
+                    $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
                     $a = new StdClass();
                     $a->fieldname = $name;
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('missingvalue', 'block_user_delegation', $a), null, $record['username'], null);
+                    $msg = get_string('missingvalue', 'block_user_delegation', $a);
+                    $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $record['username'], null);
                     continue;
 
                 } else if ($name == 'password' && !empty($value)) {
@@ -294,12 +301,12 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
 
                 } else {
                     // Normal entry (escape only).
-                    if (!in_array($name, array_keys($requiredFields)) &&
-                            !in_array($name, array_keys($optionalFields)) &&
+                    if (!in_array($name, array_keys($requiredfields)) &&
+                            !in_array($name, array_keys($optionalfields)) &&
                                     !userdelegation::pattern_match($name, $metas)) {
-                        $params = array('sesskey' => sesskey(), 'id' => $blockid, 'courseid' => $courseid);
+                        $params = ['sesskey' => sesskey(), 'id' => $blockid, 'courseid' => $courseid];
                         $returnurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
-                        print_error('unexpectedfield', 'block_userdelegation', $name, $returnurl);
+                        throw new moodle_exception('unexpectedfield', 'block_userdelegation', $name, $returnurl);
                     }
                     $user->{$name} = $value;
                 }
@@ -315,7 +322,8 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // Check if trying to upload 'changeme' user. If not, skip the line.
 
             if ($user->username === 'changeme') {
-                $log .= useradmin_uploaduser_notify_error($linenum, get_string('invaliduserchangeme', 'admin'), null, $user->username, true);
+                $msg = get_string('invaliduserchangeme', 'admin');
+                $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $user->username, true);
                 $userserrors++;
                 continue; // Skip line.
             }
@@ -323,17 +331,19 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // If a real mail has been specified, check it is a valid address (if not, skip line).
 
             if ($user->email != $data->nomail) {
-                $params = array($user->username, $user->email);
+                $params = [$user->username, $user->email];
                 $select = " username != ? AND email = ? ";
                 if (!validate_email($user->email)) {
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('invalidemail').": $user->email", null, $user->username, true);
+                    $msg = get_string('invalidemail').": $user->email";
+                    $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $user->username, true);
                     $invalidmails++;
                     $userserrors++;
                     continue; // Skip line.
                 } else if ($otheruser = $DB->get_record_select('user', $select, $params)) {
                     // Check duplicate mail with other username.
                     if ($otheruser) {
-                        $log .= useradmin_uploaduser_notify_error($linenum, get_string('emailexists').": $user->email", null, $user->username, true);
+                        $msg = get_string('emailexists').": $user->email";
+                        $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $user->username, true);
                         $duplicatemails++;
                         $userserrors++;
                         continue; // Skip line.
@@ -345,15 +355,16 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // This should NOT happen in user delegation as this field is not given in documentation.
 
             if (($user->mnethostid != $CFG->mnet_localhost_id) &&
-                    !$DB->record_exists('mnet_host', array('id' => $user->mnethostid))) {
-                $log .= useradmin_uploaduser_notify_error($linenum, get_string('mnethostidnotexists', 'block_user_delegation', $user->mnethostid), null, $user->username, true);
+                    !$DB->record_exists('mnet_host', ['id' => $user->mnethostid])) {
+                $msg = get_string('mnethostidnotexists', 'block_user_delegation', $user->mnethostid);
+                $log .= useradmin_uploaduser_notify_error($linenum, $msg, null, $user->username, true);
                 $userserrors++;
                 continue;
             }
 
             // Check if username already exists, eventually deleted or suspended.
 
-            if ($olduser = $DB->get_record('user', array('username' => $username))) {
+            if ($olduser = $DB->get_record('user', ['username' => $username])) {
                 // If update is allowed, update record.
                 $user->id = $olduser->id;
                 if ($data->updateaccounts) {
@@ -366,12 +377,14 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     try {
                         $DB->update_record('user', $user);
                     } catch (Exception $ex) {
-                        $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotupdatederror', 'block_user_delegation'), $user->id, $user->username, true);
+                        $msg = get_string('usernotupdatederror', 'block_user_delegation');
+                        $log .= useradmin_uploaduser_notify_error($linenum, $msg, $user->id, $user->username, true);
                         $userserrors++;
                         continue;
                     }
 
-                    $log .= useradmin_uploaduser_notify_success($linenum, get_string('useraccountupdated', 'block_user_delegation') , $user->id, $user->username);
+                    $msg = get_string('useraccountupdated', 'block_user_delegation');
+                    $log .= useradmin_uploaduser_notify_success($linenum, $msg, $user->id, $user->username);
                     $usersupdated++;
                 } else {
                     // If update is not allowed, just revive.
@@ -380,11 +393,13 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                     try {
                         $DB->update_record('user', $olduser);
                     } catch (Exception $ex) {
-                        $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotaddedregistered', 'block_user_delegation'), $user->id, $user->username, false);
+                        $msg = get_string('usernotaddedregistered', 'block_user_delegation');
+                        $log .= useradmin_uploaduser_notify_error($linenum, $msg, $user->id, $user->username, false);
                         $userserrors++;
                         continue;
                     }
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotupdatederror', 'block_user_delegation'), $user->id, $user->username, true);
+                    $msg = get_string('usernotupdatederror', 'block_user_delegation');
+                    $log .= useradmin_uploaduser_notify_error($linenum, $msg, $user->id, $user->username, true);
                     $userserrors++;
                     // Do not skip line, as enrolments and groups should be processed.
                 }
@@ -393,21 +408,23 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
                 // Username does not exists, so create a new user.
                 try {
                     $user->id = $DB->insert_record('user', $user);
-                    $log .= useradmin_uploaduser_notify_success($linenum, get_string('newuseradded', 'block_user_delegation'), $user->id, $user->username);
+                    $msg = get_string('newuseradded', 'block_user_delegation');
+                    $log .= useradmin_uploaduser_notify_success($linenum, $msg, $user->id, $user->username);
                     $usersnew++;
 
                     if (empty($user->password) && $data->createpassword) {
                         // Passwords will be created and sent out on cron.
-                        $DB->insert_record('user_preferences', array('userid' => $user->id,
+                        $DB->insert_record('user_preferences', ['userid' => $user->id,
                                     'name'   => 'create_password',
-                                    'value'  => 1));
-                        $DB->insert_record('user_preferences', array('userid' => $user->id,
+                                    'value'  => 1]);
+                        $DB->insert_record('user_preferences', ['userid' => $user->id,
                                     'name'   => 'auth_forcepasswordchange',
-                                    'value'  => 1));
+                                    'value'  => 1]);
                     }
                 } catch (Exception $e) {
                     // Record not added -- possibly some other error.
-                    $log .= useradmin_uploaduser_notify_error($linenum, get_string('usernotaddederror', 'block_user_delegation'), $user->id, $user->username, true);
+                    $msg = get_string('usernotaddederror', 'block_user_delegation');
+                    $log .= useradmin_uploaduser_notify_error($linenum, $msg, $user->id, $user->username, true);
                     $userserrors++;
                     continue;
                 }
@@ -450,7 +467,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     echo $OUTPUT->notification(get_string('duplicatemails', 'block_user_delegation') . ": $duplicatemails");
     echo '<hr />';
 
-    $continueurl = new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $courseid));
+    $continueurl = new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $courseid]);
 
     echo $OUTPUT->continue_button($continueurl);
 

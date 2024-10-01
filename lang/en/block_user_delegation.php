@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Lang file
+ *
+ * @package   block_user_delegation
+ * @author    Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 $string['user_delegation:addinstance'] = 'Can add an instance';
 $string['user_delegation:myaddinstance'] = 'Can add an instance to My page';
 $string['user_delegation:canbulkaddusers'] = 'Can bulk add users';
@@ -204,4 +213,4 @@ If you choose to let Moodle create passwords, you will NOT have communication of
 Moodle will send directly passwords to users on base of the declared email in the import file. User emails thus need to be valid emails.
 ';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');

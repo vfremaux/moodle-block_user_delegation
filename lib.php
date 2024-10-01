@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * General library.
+ *
+ * @package     block_user_delegation
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 /**
  * Gives metadata relatove to the dual distribution
@@ -30,14 +37,14 @@ function block_user_delegation_supports_feature($feature = null, $getsupported =
     }
 
     if (!isset($supports)) {
-        $supports = array(
-            'pro' => array(
-                'users' => array('create', 'bulkcreate', 'enrol', 'addbulk'),
-            ),
-            'community' => array(
-                'users' => array('create', 'bulkcreate'),
-            ),
-        );
+        $supports = [
+            'pro' => [
+                'users' => ['create', 'bulkcreate', 'enrol', 'addbulk'],
+            ],
+            'community' => [
+                'users' => ['create', 'bulkcreate'],
+            ],
+        ];
     }
 
     if ($getsupported) {

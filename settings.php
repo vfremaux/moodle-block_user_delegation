@@ -15,19 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Global settings
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/blocks/user_delegation/lib.php');
 
 $systemcontext = context_system::instance();
-$roles = role_fix_names(get_roles_with_capability('block/user_delegation:isbehalfof', CAP_ALLOW), $systemcontext, ROLENAME_ORIGINAL);
+$roles = get_roles_with_capability('block/user_delegation:isbehalfof', CAP_ALLOW);
+$roles = role_fix_names($roles, $systemcontext, ROLENAME_ORIGINAL);
 
-$rolemenu = array();
+$rolemenu = [];
 foreach ($roles as $rid => $role) {
     $rolemenu[$role->shortname] = $role->localname;
 }
@@ -41,7 +44,7 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configselect($key, $label, $desc, 'courseowner', $rolemenu));
     }
 
-    $yesnooptions = array('0' => get_string('no'), '1' => get_string('yes'));
+    $yesnooptions = ['0' => get_string('no'), '1' => get_string('yes')];
 
     $key = 'block_user_delegation/lastownerdeletes';
     $label = get_string('configlastownerdeletes', 'block_user_delegation');
@@ -60,7 +63,7 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions));
     }
 
-    $csvseparatoroptions = array(';' => '(;) semicolon', ':' => '(:) colon', ',' => '(,) coma', "\t" => 'TAB');
+    $csvseparatoroptions = [';' => '(;) semicolon', ':' => '(:) colon', ',' => '(,) coma', "\t" => 'TAB'];
 
     $key = 'block_user_delegation/csvseparator';
     $label = get_string('configcsvseparator', 'block_user_delegation');

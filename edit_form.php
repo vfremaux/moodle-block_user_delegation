@@ -18,21 +18,20 @@
  * Form for editing HTML block instances.
  *
  * @package   block_user_delegation
- * @category  blocks
- * @authors   Wafa Adham & Valery Fremaux
+ * @author   Wafa Adham & Valery Fremaux
  * @copyright Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Form for editing Random glossary entry block instances.
- *
- * @authors Wafa Adham & Valery Fremaux
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_user_delegation_edit_form extends block_edit_form {
 
+    /**
+     * Specific block form definition.
+     * @param object $mform
+     */
     protected function specific_definition($mform) {
         global $DB;
 
@@ -44,5 +43,4 @@ class block_user_delegation_edit_form extends block_edit_form {
         $mform->addElement('text', 'config_enrolduration', get_string('configenrolduration', 'block_user_delegation'), '');
         $mform->setType('config_enrolduration', PARAM_TEXT);
     }
-
 }

@@ -16,6 +16,11 @@
 
 /**
  * Centralizes all version dependant code.
+ *
+ * @package     block_user_delegation
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_user_delegation;
 
@@ -24,6 +29,9 @@ namespace block_user_delegation;
  */
 class compat {
 
+    /**
+     * Get user fields.
+     */
     public static function get_user_fields($prefix = 'u') {
 
         global $CFG;

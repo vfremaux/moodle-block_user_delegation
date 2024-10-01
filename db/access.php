@@ -1,173 +1,166 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
 //
-// Capability definitions for the block User Delegation.
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// The capabilities are loaded into the database table when the module is
-// installed or updated. Whenever the capability definitions are updated,
-// the module version number should be bumped up.
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// The system has four possible values for a capability:
-// CAP_ALLOW, CAP_PREVENT, CAP_PROHIBIT, and inherit (not set).
-//
-//
-// CAPABILITY NAMING CONVENTION
-//
-// It is important that capability names are unique. The naming convention
-// for capabilities that are specific to modules and blocks is as follows:
-//   [mod/block]/<component_name>:<capabilityname>
-//
-// component_name should be the same as the directory name of the mod or block.
-//
-// Core moodle capabilities are defined thus:
-//    moodle/<capabilityclass>:<capabilityname>
-//
-// Examples: mod/forum:viewpost
-//           block/recent_activity:view
-//           moodle/site:deleteuser
-//
-// The variable name for the capability definitions array follows the format
-//   $<componenttype>_<component_name>_capabilities
-//
-// For the core capabilities, the variable is $moodle_capabilities.
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Capabilities.
+ *
+ * @package     block_user_delegation
+ * @author      Valery Fremaux (valery@gmail.com)
+ * @copyright   2016 onwards Valery Fremaux (valery.fremaux@gmail.com)
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL
+ */
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
+$capabilities = [
 
     /*
      * marks in user context who is user's behalfer
      * this may be a good idea to isolate this role and capability in a custom "Supervisor" role.
      */
-    'block/user_delegation:view' => array(
+    'block/user_delegation:view' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
     /*
      * marks in user context who is user's behalfer
      * this may be a good idea to isolate this role and capability in a custom "Supervisor" role.
      */
-    'block/user_delegation:isbehalfof' => array(
+    'block/user_delegation:isbehalfof' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_USER,
-        'archetypes' => array(
-            'editingteacher' => CAP_ALLOW
-        )
-    ),
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/user_delegation:hasasbehalf' => array(
+    'block/user_delegation:hasasbehalf' => [
         'riskbitmask' => RISK_PERSONAL,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_USER,
-        'archetypes' => array(
-            'student' => CAP_ALLOW
-        )
-    ),
+        'archetypes' => [
+            'student' => CAP_ALLOW,
+        ],
+    ],
 
     /*
      *
      */
-    'block/user_delegation:cancreateusers' => array(
+    'block/user_delegation:cancreateusers' => [
         'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes' => [
             'manager' => CAP_ALLOW,
-        )
-    ),
+        ],
+    ],
 
     /*
      *
      */
-    'block/user_delegation:candeleteusers' => array(
+    'block/user_delegation:candeleteusers' => [
         'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes' => [
             'manager' => CAP_ALLOW,
-        )
-    ),
+        ],
+    ],
 
     /*
-     * Marks that current user is owning the course, thus 
+     * Marks that current user is owning the course, thus
      * able to get some reports on it and have strong delegated administration
      * only Owned course can be assigned to using the user delegation forms.
      */
-    'block/user_delegation:owncourse' => array(
+    'block/user_delegation:owncourse' => [
         'riskbitmask' => RISK_SPAM | RISK_XSS,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-        )
-    ),
+        'archetypes' => [
+        ],
+    ],
 
     /*
-     * Marks that current user is owning the course, thus 
+     * Marks that current user is owning the course, thus
      * able to get some reports on it and have strong delegated administration
-     * only Owned course can be assigned to using the user delegation forms. 
+     * only Owned course can be assigned to using the user delegation forms.
      */
-    'block/user_delegation:owncoursecat' => array(
+    'block/user_delegation:owncoursecat' => [
         'riskbitmask' => RISK_SPAM | RISK_XSS,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSECAT,
-        'archetypes' => array(
-        )
-    ),
+        'archetypes' => [
+        ],
+    ],
 
     /*
      *
      */
-    'block/user_delegation:canbulkaddusers' => array(
+    'block/user_delegation:canbulkaddusers' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes' => [
             'manager' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW
-        )
-    ),
+            'coursecreator' => CAP_ALLOW,
+        ],
+    ],
 
     /*
      * Can add an instance to the course the user has capability on
      */
-    'block/user_delegation:addinstance' => array(
+    'block/user_delegation:addinstance' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes' => [
             'manager' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW
-        )
-    ),
+            'coursecreator' => CAP_ALLOW,
+        ],
+    ],
 
     /*
      * Can add an instance on any "My" page of the user.
      */
-    'block/user_delegation:myaddinstance' => array(
+    'block/user_delegation:myaddinstance' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
+        'archetypes' => [
             'manager' => CAP_ALLOW,
-            'coursecreator' => CAP_ALLOW
-        )
-    ),
+            'coursecreator' => CAP_ALLOW,
+        ],
+    ],
 
     /*
      * Can configure the instances.
      */
-    'block/user_delegation:configure' => array(
+    'block/user_delegation:configure' => [
         'riskbitmask' => RISK_CONFIG,
 
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    )
-);
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+];

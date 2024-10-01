@@ -15,25 +15,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Tests the data generator.
+ *
  * @package     block_user_delegation
- * @category    test
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace block_user_delegation;
 
+use testing_data_generator;
 
 /**
  * PHPUnit data generator testcase
  *
- * @package    mod_page
- * @category   phpunit
- * @copyright  2012 Petr Skoda {@link http://skodak.org}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     block_user_delegation
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers      \user_delegation_generator
  */
-class block_user_delegation_generator_testcase extends advanced_testcase {
+class generator_test extends advanced_testcase {
 
     public function test_generator() {
         global $DB, $SITE;
@@ -49,7 +52,7 @@ class block_user_delegation_generator_testcase extends advanced_testcase {
         $this->assertEquals('user_delegation', $generator->get_blockname());
 
         $bi = $generator->create_instance();
-        $this->assertEquals($beforeblocks+1, $DB->count_records('block_instances'));
+        $this->assertEquals($beforeblocks + 1, $DB->count_records('block_instances'));
 
         $generator = new testing_data_generator();
     }

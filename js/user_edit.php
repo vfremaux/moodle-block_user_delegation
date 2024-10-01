@@ -29,9 +29,9 @@ $lifetime = 1800;
 // Commenting this out since it's creating problems
 // where solution seem to be hard to find...
 // http://moodle.org/mod/forum/discuss.php?d=34376
-//if ( function_exists('ob_gzhandler') ) {
-//    ob_start("ob_gzhandler");
-//}
+// if ( function_exists('ob_gzhandler') ) {
+// ob_start("ob_gzhandler");
+// }
 
 header("Content-type: application/x-javascript; charset: utf-8");  // Correct MIME type
 header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastmodified) . " GMT");

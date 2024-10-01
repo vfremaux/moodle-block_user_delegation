@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Local library.
+ *
+ * @package     block_user_delegation
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 /**
  * Get an array of courses where cap requested is available
@@ -31,7 +38,8 @@ defined('MOODLE_INTERNAL') || die();
  * @param int    $limit_ignored
  * @return array $courses - ordered array of course objects - see notes above
  */
-function user_delegation_get_user_courses_bycap($userid, $cap, $accessdata_ignored, $doanything_ignored, $sort = 'c.sortorder ASC', $fields = null, $limit_ignored = 0) {
+function user_delegation_get_user_courses_bycap($userid, $cap, $accessdataignored, $doanythingignored, $sort = 'c.sortorder ASC',
+        $fields = null, $limitignored = 0) {
 
     $courses = enrol_get_users_courses($userid, true, $fields, $sort);
     foreach ($courses as $id => $course) {
@@ -44,21 +52,26 @@ function user_delegation_get_user_courses_bycap($userid, $cap, $accessdata_ignor
     return $courses;
 }
 
+/**
+ * Get the courses the user has owning capability.
+ * @todo : try to optimize this using capability and role assign tables
+ * rather than scanning all courses.
+ */
 function user_delegation_get_owned_courses() {
     global $DB;
 
-    $allcourses = $DB->get_records('course', array(), 'category,fullname', 'id,shortname,fullname,category');
-    $coursesarr = array('0' => get_string('noassign', 'block_user_delegation'));
-    $categorycache = array();
+    $allcourses = $DB->get_records('course', [], 'category,fullname', 'id,shortname,fullname,category');
+    $coursesarr = ['0' => get_string('noassign', 'block_user_delegation')];
+    $categorycache = [];
     if ($allcourses) {
         foreach ($allcourses as $c) {
             $coursecontext = context_course::instance($c->id);
             if (!has_capability('block/user_delegation:owncourse', $coursecontext)) {
                 continue;
             }
-            $course = $DB->get_record('course', array('id' => $c->id), 'id, fullname');
+            $course = $DB->get_record('course', ['id' => $c->id], 'id, fullname');
             if (!array_key_exists($c->category, $categorycache)) {
-                $categorycache[$c->category] = format_string($DB->get_field('course_categories', 'name', array('id' => $c->category)));
+                $categorycache[$c->category] = format_string($DB->get_field('course_categories', 'name', ['id' => $c->category]));
             }
             $coursesarr[$course->id] = "... / ".$categorycache[$c->category].' / '.$course->fullname;
         }

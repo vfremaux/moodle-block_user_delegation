@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Edit a simple add user form.
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,7 +27,7 @@ require('../../config.php');
 require_once($CFG->libdir.'/gdlib.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
-require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
+require_once($CFG->dirroot.'/blocks/user_delegation/forms/editsimple_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
 require_once($CFG->dirroot.'/user/lib.php');
@@ -36,22 +37,16 @@ $id = optional_param('id', -1, PARAM_INT);    // Edited user id; -1 if creating 
 $blockid = required_param('blockid', PARAM_INT);    // The block instance id.
 $courseid = optional_param('course', SITEID, PARAM_INT);   // Course id (defaults to Site).
 
-if (!$instance = $DB->get_record('block_instances', array('id' => $blockid))) {
-    print_error('badblockid', 'block_user_delegation');
-}
-
+$instance = $DB->get_record('block_instances', ['id' => $blockid], '*', MUST_EXIST);
 $theblock = block_instance('user_delegation', $instance);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
-$params =  array('blockid' => $blockid, 'course' => $courseid, 'id' => $id);
+$params = ['blockid' => $blockid, 'course' => $courseid, 'id' => $id];
 $url = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
 $PAGE->set_url($url);
 
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/user_edit.php?id='.$courseid);
-
-if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('coursemisconf');
-}
 
 // Security.
 
@@ -85,17 +80,15 @@ if ($id == -1) {
 
     // Let be sure we are mentor.
     require_capability('block/user_delegation:isbehalfof', $personalcontext);
-    if (!$user = $DB->get_record('user', array('id' => $id))) {
-        print_error('errornosuchuser', 'block_user_delegation');
-    }
+    $user = $DB->get_record('user', ['id' => $id], '*', MUST_EXIST);
 }
 
-if ($user->id != $USER->id and is_primary_admin($user->id)) {  // Can't edit primary admin
-    print_error('adminprimarynoedit');
+if ($user->id != $USER->id && is_primary_admin($user->id)) {  // Can't edit primary admin.
+    throw new moodle_exception('adminprimarynoedit');
 }
 if (isguestuser($user->id)) {
     // The real guest user can not be edited.
-    print_error('guestnoeditprofileother');
+    throw new moodle_exception('guestnoeditprofileother');
 }
 
 if ($user->deleted) {
@@ -107,7 +100,7 @@ if ($user->deleted) {
 
 // Load user preferences.
 useredit_load_preferences($user);
-
+s
 // Load custom profile fields data.
 profile_load_data($user);
 
@@ -117,10 +110,10 @@ $user->interests = block_user_delegation::user_interests($id);
 $coursesarr = user_delegation_get_owned_courses();
 
 // Create form.
-$userform = new user_editsimple_form($url, array('user' => $user, 'courses' => $coursesarr));
+$userform = new user_editsimple_form($url, ['user' => $user, 'courses' => $coursesarr]);
 
 if ($userform->is_cancelled()) {
-    redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
+    redirect(new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $course->id]));
 }
 
 if ($newuser = $userform->get_data()) {
@@ -144,7 +137,7 @@ if ($newuser = $userform->get_data()) {
         $newuser->confirmed  = 1;
         $newuser->password = hash_internal_user_password($newuser->newpassword);
         if (!$newuser->id = user_create_user($newuser, false, false)) {
-            print_error('errorcreateuser', 'block_user_delegation');
+            throw new moodle_exception('errorcreateuser', 'block_user_delegation');
         }
 
         // Assign the created user on behalf of the creator.
@@ -156,22 +149,22 @@ if ($newuser = $userform->get_data()) {
         try {
             user_update_user($newuser, false, false);
         } catch (Exception $e) {
-            print_error('errorupdatinguser', 'block_user_delegation');
+            throw new moodle_exception('errorupdatinguser', 'block_user_delegation');
         }
 
         // Pass a true $userold here.
         if (!$authplugin->user_update($user, $userform->get_data(false))) {
             // Auth update failed, rollback for moodle.
             $DB->update_record('user', $user);
-            print_error('Failed to update user data on external auth: '.$user->auth.
+            throw new moodle_exception('Failed to update user data on external auth: '.$user->auth.
                     '. See the server logs for more details.');
         }
 
         // Set new password if specified.
         if (!empty($newuser->newpassword)) {
             if ($authplugin->can_change_password()) {
-                if (!$authplugin->user_update_password($newuser, $newuser->newpassword)){
-                    print_error('Failed to update password on external auth: ' . $newuser->auth .
+                if (!$authplugin->user_update_password($newuser, $newuser->newpassword)) {
+                    throw new moodle_exception('Failed to update password on external auth: ' . $newuser->auth .
                             '. See the server logs for more details.');
                 }
             }
@@ -192,8 +185,8 @@ if ($newuser = $userform->get_data()) {
     profile_save_data($newuser);
 
     if (!empty($newuser->coursetoassign)) {
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $coursetoassign = $DB->get_record('course', array('id' => $newuser->coursetoassign));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        $coursetoassign = $DB->get_record('course', ['id' => $newuser->coursetoassign]);
         $coursecontext = context_course::instance($coursetoassign->id);
 
         // Compute enrolment end time if required by block config.
@@ -204,7 +197,8 @@ if ($newuser = $userform->get_data()) {
 
         if ($coursetoassign) {
             // TODO : Rewrite assignation.
-            if ($enrols = $DB->get_records('enrol', array('enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED), 'sortorder ASC')) {
+            $params = ['enrol' => 'manual', 'courseid' => $coursetoassign->id, 'status' => ENROL_INSTANCE_ENABLED];
+            if ($enrols = $DB->get_records('enrol', $params, 'sortorder ASC')) {
                 $enrol = reset($enrols);
                 $enrolplugin = enrol_get_plugin('manual');
                 $enrolplugin->enrol_user($enrol, $newuser->id, $studentrole->id, time(), $end, ENROL_USER_ACTIVE);
@@ -213,10 +207,10 @@ if ($newuser = $userform->get_data()) {
     }
 
     // Reload from db.
-    $newuser = $DB->get_record('user', array('id' => $newuser->id));
+    $newuser = $DB->get_record('user', ['id' => $newuser->id]);
 
     // Trigger events.
-    redirect(new moodle_url('/blocks/user_delegation/myusers.php', array('id' => $blockid, 'course' => $course->id)));
+    redirect(new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $course->id]));
 }
 
 // Display page header.

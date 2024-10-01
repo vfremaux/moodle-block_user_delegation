@@ -15,31 +15,34 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * User Delegation manager
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/user_delegation/compatlib.php');
 
-use \block_user_delegation\compat;
+use block_user_delegation\compat;
 
 /**
- * 
+ * Main manager class
  */
 class userdelegation {
 
     /**
      * get given reponsible users.
-     * 
+     *
      * @param int $power_uid responsible user id .
      * @param mixed $order  order field
-     * @return mixed  array of user object 
+     * @return mixed  array of user object
      */
-    public static function get_delegated_users($poweruid, $sort = 'lastaccess', $dir = 'ASC', $page = 0, $recordsperpage = 0, $search='', $firstinitial = '', $lastinitial = '', $extraselect = array()) { 
+    public static function get_delegated_users($poweruid, $sort = 'lastaccess', $dir = 'ASC', $page = 0, $recordsperpage = 0,
+            $search='', $firstinitial = '', $lastinitial = '', $extraselect = []) {
         global $DB, $USER;
 
         $fullname = " CONCAT(firstname, '', lastname) ";
@@ -54,24 +57,24 @@ class userdelegation {
         if (!empty($extraselect[1])) {
             $params = $extraselect[1];
         } else {
-            $params = array();
+            $params = [];
         }
 
         if (!empty($search)) {
             $search = trim($search);
-            $LIKE1 = $DB->sql_like($fullname, ':search1', false, false);
-            $LIKE2 = $DB->sql_like('email', ':search2', false, false);
-            $LIKE3 = $DB->sql_like('username', ':search3', false, false);
-            $select .= " AND ($LIKE1 OR $LIKE2 OR $LIKE3 ";
-            $params += array('search1' => $search, 'search2' => $search, 'seach3' => $search);
+            $like1 = $DB->sql_like($fullname, ':search1', false, false);
+            $like2 = $DB->sql_like('email', ':search2', false, false);
+            $like3 = $DB->sql_like('username', ':search3', false, false);
+            $select .= " AND ($like1 OR $like2 OR $like3 ";
+            $params += ['search1' => $search, 'search2' => $search, 'seach3' => $search];
         }
 
         if ($firstinitial) {
-            $select .= ' AND firstname '. $LIKE .' \''. $firstinitial .'%\' ';
+            $select .= ' AND firstname '. $like .' \''. $firstinitial .'%\' ';
         }
 
         if ($lastinitial) {
-            $select .= ' AND lastname '. $LIKE .' \''. $lastinitial .'%\' ';
+            $select .= ' AND lastname '. $like .' \''. $lastinitial .'%\' ';
         }
 
         if ($extrasql) {
@@ -100,7 +103,7 @@ class userdelegation {
         ";
         $users = $DB->get_records_sql($sql, $params, $page, $recordsperpage);
 
-        $behalfedusers = array();
+        $behalfedusers = [];
         foreach ($users as $u) {
             $usercontext = context_user::instance($u->id);
             if (has_capability('block/user_delegation:isbehalfof', $usercontext, $USER->id, false)) {
@@ -114,11 +117,11 @@ class userdelegation {
     /**
      *
      */
-    public static function check_user_exist($email, $firstname, $lastname){ 
+    public static function check_user_exist($email, $firstname, $lastname) {
         global $DB;
 
-        $params = array('email' => $email, 'firstname' => $firstname, 'lastname' => $lastname);
-        $result = $DB->get_record('user', $params); 
+        $params = ['email' => $email, 'firstname' => $firstname, 'lastname' => $lastname];
+        $result = $DB->get_record('user', $params);
         return $result;
     }
 
@@ -130,24 +133,24 @@ class userdelegation {
      *  $behalvingrole = get_roles_with_capability('block/user_delegation:hasasbehalf', CAP_ALLOW);
      *  $behalvedrole = get_roles_with_capability('block/user_delegation:isbehalfof', CAP_ALLOW);
      */
-    public static function attach_user($power_uid, $fellow_uid) {
+    public static function attach_user($poweruid, $fellowuid) {
         global $DB, $COURSE;
 
         $config = get_config('block_user_delegation');
 
-        $fellowcontext = context_user::instance($fellow_uid);
-        $supervisorcontext = context_user::instance($power_uid);
+        $fellowcontext = context_user::instance($fellowuid);
+        $supervisorcontext = context_user::instance($poweruid);
 
-        $supervisorroleid = $DB->get_field('role', 'id', array('shortname' => $config->corole));
-        $studentroleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
+        $supervisorroleid = $DB->get_field('role', 'id', ['shortname' => $config->corole]);
+        $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
 
         if (!$supervisorroleid) {
-            $returnurl = new moodle_url('/course/view.php', array('id' => $COURSE->id));
-            print_error('errormisconfig', 'block_user_delegation', $config->corole, $returnurl);
+            $returnurl = new moodle_url('/course/view.php', ['id' => $COURSE->id]);
+            throw new moodle_exception('errormisconfig', 'block_user_delegation', $config->corole, $returnurl);
         }
 
-        $result = role_assign($supervisorroleid, $power_uid, $fellowcontext->id);
-        $result = $result && role_assign($studentroleid, $fellow_uid, $supervisorcontext->id);
+        $result = role_assign($supervisorroleid, $poweruid, $fellowcontext->id);
+        $result = $result && role_assign($studentroleid, $fellowuid, $supervisorcontext->id);
 
         return (int)$result;
     }
@@ -158,19 +161,19 @@ class userdelegation {
      *  $behalvingrole = get_roles_with_capability('block/user_delegation:hasasbehalf', CAP_ALLOW);
      *  $behalvedrole = get_roles_with_capability('block/user_delegation:isbehalfof', CAP_ALLOW);
      */
-    public static function detach_user($power_uid, $fellow_uid){
+    public static function detach_user($poweruid, $fellowuid) {
         global $DB;
 
         $config = get_config('block_user_delegation');
 
-        $fellowcontext = context_user::instance($fellow_uid);
-        $supervisorcontext = context_user::instance($power_uid);
+        $fellowcontext = context_user::instance($fellowuid);
+        $supervisorcontext = context_user::instance($poweruid);
 
-        $supervisorroleid = $DB->get_field('role', 'id', array('shortname' => $config->corole));
-        $studentroleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
+        $supervisorroleid = $DB->get_field('role', 'id', ['shortname' => $config->corole]);
+        $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
 
-        $result = role_unassign($supervisorroleid, $power_uid, $fellowcontext->id);
-        $result = $result && role_unassign($studentroleid, $fellow_uid, $supervisorcontext->id);
+        $result = role_unassign($supervisorroleid, $poweruid, $fellowcontext->id);
+        $result = $result && role_unassign($studentroleid, $fellowuid, $supervisorcontext->id);
 
         return (int)$result;
     }
@@ -199,8 +202,8 @@ class userdelegation {
                 ra.userid = ?
         ";
 
-        $role = $DB->get_record('role', array('shortname' => $config->corole));
-        $courses = $DB->get_records_sql($sql, array(CONTEXT_COURSE, $role->id, $USER->id));
+        $role = $DB->get_record('role', ['shortname' => $config->corole]);
+        $courses = $DB->get_records_sql($sql, [CONTEXT_COURSE, $role->id, $USER->id]);
 
         return $courses;
     }
@@ -244,7 +247,7 @@ class userdelegation {
     public static function get_user_courses_bycap($userid, $cap, $doanything, $sort = 'c.sortorder ASC', $fields = null) {
         global $DB;
 
-        $courses = $DB->get_records('course', array('visible' => 1), 'fullname', 'id, shortname, fullname');
+        $courses = $DB->get_records('course', ['visible' => 1], 'fullname', 'id, shortname, fullname');
         foreach ($courses as $id => $course) {
             $context = context_course::instance($id);
             if (!has_capability($cap, $context, $userid, $doanything)) {
@@ -259,14 +262,14 @@ class userdelegation {
      * Check a CSV input line format for empty or commented lines
      * Ensures compatbility to UTF-8 BOM or unBOM formats
      */
-    static function is_empty_line_or_format(&$text, $latin2utf8 = false) {
+    public static function is_empty_line_or_format(&$text, $latin2utf8 = false) {
 
         static $first = true;
 
         $text = preg_replace("/\n?\r?/", '', $text);
 
         if ($latin2utf8) {
-            $text = utf8_encode($text);
+            $text = mb_convert_encoding($text, 'UTF-8', 'auto');
         }
 
         return preg_match('/^$/', $text) || preg_match('/^(\(|\[|-|#|\/| )/', $text);
@@ -278,7 +281,7 @@ class userdelegation {
      * @param array $patterns an array of patterns to match in string.
      * @return true when at least one pattern matchs.
      */
-    static function pattern_match($str, $patterns) {
+    public static function pattern_match($str, $patterns) {
 
         if (!empty($patterns)) {
             foreach ($patterns as $p) {
@@ -289,16 +292,16 @@ class userdelegation {
         }
         return false;
     }
-    
+
     /**
      * Returns the file as one big long string
      * @param string $filename
      * @param bool $use_include_path
      */
-    static function my_file_get_contents($filename, $use_include_path = 0) {
+    public static function my_file_get_contents($filename, $useincludepath = 0) {
 
         $data = '';
-        $file = @fopen($filename, 'rb', $use_include_path);
+        $file = fopen($filename, 'rb', $useincludepath);
         if ($file) {
             while (!feof($file)) {
                 $data .= fread($file, 1024);
@@ -307,7 +310,7 @@ class userdelegation {
         }
         return $data;
     }
-    
+
     /**
      * Pre process custom profile data, and update it with corrected value
      *
@@ -315,14 +318,14 @@ class userdelegation {
      * @param stdClass $data user profile data
      * @return stdClass pre-processed custom profile data
      */
-    static function pre_process_custom_profile_data($data) {
+    public static function pre_process_custom_profile_data($data) {
         global $CFG, $DB;
 
         // Find custom profile fields and check if data needs to converted.
         foreach ($data as $key => $value) {
             if (preg_match('/^profile_field_/', $key)) {
                 $shortname = str_replace('profile_field_', '', $key);
-                if ($fields = $DB->get_records('user_info_field', array('shortname' => $shortname))) {
+                if ($fields = $DB->get_records('user_info_field', ['shortname' => $shortname])) {
                     foreach ($fields as $field) {
                         require_once($CFG->dirroot.'/user/profile/field/'.$field->datatype.'/field.class.php');
                         $newfield = 'profile_field_'.$field->datatype;
@@ -337,6 +340,9 @@ class userdelegation {
         return $data;
     }
 
+    /**
+     * Bind cohort to user.
+     */
     public static function bind_cohort($record, $user, &$log) {
         global $DB;
 
@@ -350,19 +356,19 @@ class userdelegation {
 
         $cancreate = 0;
         if (!empty($record['cohort'])) {
-            $cohort = $DB->get_record('cohort', array('name' => $record['cohort']));
+            $cohort = $DB->get_record('cohort', ['name' => $record['cohort']]);
             // We will only be able to create a cohort if we have a name.
             $cancreate = 1;
         }
         if (!empty($record->cohortid)) {
-            // cohort id prehempts on cohort name if both are present.
-            $cohort = $DB->get_record('cohort', array('idnumber' => $record['cohortid']));
+            // Cohort id prehempts on cohort name if both are present.
+            $cohort = $DB->get_record('cohort', ['idnumber' => $record['cohortid']]);
         }
         $t = time();
         if (!$cohort && $cancreate) {
-            $cohort = new \StdClass();
+            $cohort = new StdClass();
             $cohort->name = $record['cohort'];
-            $cohort->idnumber = @$record['cohortid'];
+            $cohort->idnumber = $record['cohortid'] ?? 0;
             $cohort->descriptionformat = FORMAT_MOODLE;
             $cohort->contextid = $systemcontext->id;
             $cohort->timecreated = $t;
@@ -377,7 +383,7 @@ class userdelegation {
         $log .= 'Processing cohorts in : '.$cohort->idnumber.' > '.$cohort->name;
         if (!empty($cohort->id)) {
             // Bind user to cohort.
-            $params = array('userid' => $user->id, 'cohortid' => $cohort->id);
+            $params = ['userid' => $user->id, 'cohortid' => $cohort->id];
             if (!$cohortmembership = $DB->get_record('cohort_members', $params)) {
                 $cohortmembership = new \StdClass();
                 $cohortmembership->userid = $user->id;

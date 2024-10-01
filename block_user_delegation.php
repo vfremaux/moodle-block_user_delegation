@@ -18,10 +18,15 @@
  * Main block class
  *
  * @package block_user_delegation
- * @authors Wafa Adham & Valery Fremaux
+ * @author Wafa Adham & Valery Fremaux
  * @copyright  2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/*
+ * phpcs:disable moodle.Commenting.ValidTags.Invalid
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
@@ -32,7 +37,7 @@ if (is_dir($CFG->dirroot.'/local/moodlescript')) {
     require_once($CFG->dirroot.'/local/moodlescript/lib.php');
 }
 
-/** 
+/**
  * Main block class
  * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -113,10 +118,10 @@ class block_user_delegation extends block_base {
             $canbulkimport = has_capability('block/user_delegation:canbulkaddusers', $blockcontext);
         } else {
             $contexts = CONTEXT_COURSE.','.CONTEXT_COURSECAT;
-            if (!block_user_delegation::has_capability_somewhere('block/user_delegation:view', true, true, false, $contexts)) {
+            if (!self::has_capability_somewhere('block/user_delegation:view', true, true, false, $contexts)) {
                 return $this->content;
             }
-            $canbulkimport = block_user_delegation::has_capability_somewhere('block/user_delegation:canbulkaddusers', true, true, false, $contexts);
+            $canbulkimport = self::has_capability_somewhere('block/user_delegation:canbulkaddusers', true, true, false, $contexts);
         }
 
         $importusersstr = get_string('importusers', 'block_user_delegation');
@@ -148,10 +153,10 @@ class block_user_delegation extends block_base {
 
     /**
      * This function makes all the necessary calls to {@link restore_decode_content_links_worker()}
-     * function in order to decode contents of this block from the backup 
-     * format to destination site/course in order to mantain inter-activities 
-     * working in the backup/restore process. 
-     * 
+     * function in order to decode contents of this block from the backup
+     * format to destination site/course in order to mantain inter-activities
+     * working in the backup/restore process.
+     *
      * This is called from {@link restore_decode_content_links()} function in the restore process.
      *
      * NOTE: There is no block instance when this method is called.
@@ -171,7 +176,7 @@ class block_user_delegation extends block_base {
      * @param bool $doanything
      * @param string $contextlevels
      */
-    static public function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
+    public static function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
         global $USER, $DB;
 
         $contextclause = '';
@@ -229,7 +234,7 @@ class block_user_delegation extends block_base {
     public static function process_bulk($data) {
         global $USER, $COURSE, $CFG;
 
-        $report = $str;
+        $report = '';
         $config = get_config('block_user_delegation');
         $script = $config->prescript ?? '';
 
@@ -282,14 +287,13 @@ class block_user_delegation extends block_base {
             'userid' => $USER->id,
         ];
 
-        $report = '';
         if (is_dir($CFG->dirroot.'/local/moodlescript')) {
 
             $script = $config->postscript ?? '';
 
             // Make a script engine and run it.
             $engine = local_moodlescript_get_engine($script);
-            $report = local_moodlescript_execute($engine, $globalcontext);
+            $report = local_moodlescript_execute($engine, (object) $globalcontext);
         }
 
         return $report;
@@ -341,7 +345,7 @@ class block_user_delegation extends block_base {
      * @param string $text
      */
     public static function trim_utf8_bom($text) {
-     return core_text::trim_utf8_bom($text);
+        return core_text::trim_utf8_bom($text);
     }
 
     /**

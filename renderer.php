@@ -15,26 +15,38 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Component renderer
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Renderer class.
+ */
 class block_user_delegation_renderer extends plugin_renderer_base {
 
+    /**
+     * Link to upload users.
+     * @param int $blockid
+     */
     public function upload_users_link($blockid) {
-        global $COURSE, $OUTPUT;
+        global $COURSE;
 
-        $str = '&nbsp;<img src="'.$OUTPUT->pix_url('upload', 'block_user_delegation').'" />';
-        $params = array('id' => $blockid, 'course' => $COURSE->id);
+        $str = '&nbsp;<img src="'.$this->output->pix_url('upload', 'block_user_delegation').'" />';
+        $params = ['id' => $blockid, 'course' => $COURSE->id];
         $uploadurl = new moodle_url('/blocks/user_delegation/uploaduser.php', $params);
         $str .= '&nbsp;<a href="'.$uploadurl.'">'.get_string('uploadusers', 'block_user_delegation').'</a>';
 
         return $str;
     }
 
+    /**
+     * List of unassigned users.
+     * @param array $users
+     */
     public function unassigned_users($users) {
 
         $pixurl = $this->output->pix_url('user', 'block_user_delegation');

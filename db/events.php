@@ -15,20 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Event definition
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-$observers = array (
-    array(
+$observers = [
+    [
         'eventname'   => '\core\event\groups_member_added',
         'callback'    => 'block_user_delegation_event_observer::on_group_member_added',
         'includefile' => '/blocks/user_delegation/observers.php',
         'internal'    => true,
         'priority'    => 9999,
-    ),
-);
+    ],
+];

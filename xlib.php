@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * A library to interact with other parts of Moodle
+ *
  * @package     block_user_delegation
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * A library to interact with other parts of Moodle
  */
 
 /**
@@ -33,7 +30,7 @@ function user_delegation_has_delegation_somewhere() {
     global $USER;
 
     // TODO : explore caps for a moodle/local:overridemy positive answer.
-    $hassome = get_user_capability_course('block/user_delegation:cancreateusers', $USER->id, false); 
+    $hassome = get_user_capability_course('block/user_delegation:cancreateusers', $USER->id, false);
     if (!empty($hassome)) {
         return true;
     }
@@ -50,10 +47,17 @@ function get_onbehalf_user_count() {
     return 0;
 }
 
+/**
+ * Checks if a user is owner of other user
+ * @param int $userid
+ * @param int $ownerid
+ */
 function user_delegation_is_owner($userid, $ownerid = 0) {
     global $USER;
 
-    if (!$ownerid) $ownerid = $USER->id;
+    if (!$ownerid) {
+        $ownerid = $USER->id;
+    }
 
     $usercontext = context_user::instance($userid);
     return has_capability('block/user_delegation:hasasbehalf', $usercontext, $ownerid);
