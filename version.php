@@ -25,16 +25,16 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2021102100;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2025042900;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2022112801;        // Requires this Moodle version.
 $plugin->component = 'block_user_delegation'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '4.1.0 (Build 2021102100)';
-$plugin->supported = [401, 402];
+$plugin->release = '4.5.0 (Build 2025042900)';
+$plugin->supported = [403, 405];
 if (function_exists('block_user_delegation_supports_feature') && block_user_delegation_supports_feature() === 'pro') {
     $plugin->dependencies = ['local_vfcore' => 2024053100];
 }
 
 // Non moodle attributes.
-$plugin->codeincrement = '4.1.0005';
+$plugin->codeincrement = '4.5.0006';
 $plugin->privacy = 'dualrelease';

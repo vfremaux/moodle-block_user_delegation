@@ -106,6 +106,7 @@ $string['newuseradded'] = 'Nouvel utilisateur ajouté';
 $string['noassign'] = '-- Ajouter simplement l\'utilisateur --';
 $string['assignto'] = 'Inscrire dans le cours {$a}';
 $string['nogroups'] = 'Pas de groupes dans ce cours';
+$string['nogroupassign'] = 'Pas d\'assignation de groupe';
 $string['nogroupswaitcourseslection'] = '-- Pas de cours sélectionné --';
 $string['nomail'] = 'Utilisateurs sans adresse de courriel';
 $string['nomail_help'] = 'Normalement dans Moodle les utilisateurs DEVRAIENT avoir une adresse de courriel valide. Si ce n\'est pas possible, mentionnez ce code dans la colonne "email" de votre fichier d\'import.';

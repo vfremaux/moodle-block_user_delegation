@@ -220,7 +220,7 @@ class userdelegation {
         }
         $personalcontext = context_user::instance($userid);
 
-        $fields = compat::user_fields('u');
+        $fields = compat::get_user_fields('u');
         $sort = 'lastname,firstname';
         $owners = get_users_by_capability($personalcontext, 'block/user_delegation:isbehalfof', $fields, $sort, 0, 0, '', '', true);
 

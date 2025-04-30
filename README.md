@@ -10,3 +10,8 @@ change event declaration to observer class
 === XXXX.004 ===
 
 Add meta processing of user input fields on import bulk. Let pass profile fields for integration
+
+=== XXXX.006 ===
+
+Fix group assignation options
+Enhanced report semantic
