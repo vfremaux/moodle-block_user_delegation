@@ -120,6 +120,7 @@ $string['newuser'] = 'New User';
 $string['newuseradded'] = 'New user added';
 $string['noassign'] = '-- no course assignment --';
 $string['nogroups'] = 'No groups in course';
+$string['nogroupassign'] = 'Do not assign to group';
 $string['nogroupswaitcourseslection'] = '-- No groups or waits course selection --';
 $string['nomail'] = 'No Mail';
 $string['nomail_help'] = 'Usually in Moodle, users SHOULD have a valid mail. In case this is NOT possible, you may mention this token into the email field of your file to let unmailed users pass.';

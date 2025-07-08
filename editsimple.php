@@ -100,7 +100,7 @@ if ($user->deleted) {
 
 // Load user preferences.
 useredit_load_preferences($user);
-s
+
 // Load custom profile fields data.
 profile_load_data($user);
 

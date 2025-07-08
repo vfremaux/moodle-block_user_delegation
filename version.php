@@ -36,5 +36,5 @@ if (function_exists('block_user_delegation_supports_feature') && block_user_dele
 }
 
 // Non moodle attributes.
-$plugin->codeincrement = '4.1.0005';
+$plugin->codeincrement = '4.1.0006';
 $plugin->privacy = 'dualrelease';

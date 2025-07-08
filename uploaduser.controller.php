@@ -151,31 +151,33 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
     ];
 
     // String fields length.
-    $fieldlength = ['username' => 100,
-                        'password' => 32,
-                        'firstname' => 100,
-                        'lastname' => 100,
-                        'email' => 100,
-                        'institution' => 40,
-                        'department' => 40,
-                        'city' => 30,
-                        'cohort' => 254,
-                        'cohortid' => 100,
-                        'lang' => 30,
-                        'auth' => 20,
-                        'timezone' => 100,
-                        'idnumber' => 64,
-                        'icq' => 15,
-                        'skype' => 50,
-                        'yahoo' => 50,
-                        'msn' => 50,
-                        'aim' => 50,
-                        'phone1' => 20,
-                        'phone2' => 20,
-                        'address' => 70,
-                        'url' => 255,
-                        'description' => 255,
-                        'oldusername' => 100];
+    $fieldlength = [
+        'username' => 100,
+        'password' => 32,
+        'firstname' => 100,
+        'lastname' => 100,
+        'email' => 100,
+        'institution' => 40,
+        'department' => 40,
+        'city' => 30,
+        'cohort' => 254,
+        'cohortid' => 100,
+        'lang' => 30,
+        'auth' => 20,
+        'timezone' => 100,
+        'idnumber' => 64,
+        'icq' => 15,
+        'skype' => 50,
+        'yahoo' => 50,
+        'msn' => 50,
+        'aim' => 50,
+        'phone1' => 20,
+        'phone2' => 20,
+        'address' => 70,
+        'url' => 255,
+        'description' => 255,
+        'oldusername' => 100,
+    ];
 
     // Get header (field names).
     $l = array_shift($lines);
@@ -438,7 +440,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // Assign it to the selected course if any.
             if (!empty($data->coursetoassign)) {
                 include_once($CFG->dirroot.'/blocks/user_delegation/pro/lib.php');
-                block_user_delegation_enrol($data, $user, $theblock);
+                block_user_delegation_enrol($data, $user, $theblock, $linenum, $log);
             }
 
             $user = userdelegation::pre_process_custom_profile_data($user);
@@ -459,12 +461,12 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
         echo '</pre>';
     }
 
-    echo $OUTPUT->notification("$strusersnew: $usersnew");
-    echo $OUTPUT->notification(get_string('usersupdated', 'block_user_delegation') . ": $usersupdated");
-    echo $OUTPUT->notification(get_string('errors', 'block_user_delegation').": $userserrors");
-    echo $OUTPUT->notification(get_string('fakemails', 'block_user_delegation') . ": $fakemails");
-    echo $OUTPUT->notification(get_string('invalidmails', 'block_user_delegation') . ": $invalidmails");
-    echo $OUTPUT->notification(get_string('duplicatemails', 'block_user_delegation') . ": $duplicatemails");
+    echo $OUTPUT->notification("$strusersnew: $usersnew", ($usersnew) ? 'success' : 'info');
+    echo $OUTPUT->notification(get_string('usersupdated', 'block_user_delegation') . ": $usersupdated", ($usersupdated) ? 'success' : 'info');
+    echo $OUTPUT->notification(get_string('errors', 'block_user_delegation').": $userserrors", ($userserrors) ? 'error' : 'info');
+    echo $OUTPUT->notification(get_string('fakemails', 'block_user_delegation') . ": $fakemails", 'info');
+    echo $OUTPUT->notification(get_string('invalidmails', 'block_user_delegation') . ": $invalidmails", ($invalidmails) ? 'error' : 'success');
+    echo $OUTPUT->notification(get_string('duplicatemails', 'block_user_delegation') . ": $duplicatemails", ($duplicatemails) ? 'error' : 'info');
     echo '<hr />';
 
     $continueurl = new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $courseid]);

@@ -50,7 +50,7 @@ $theblock = block_instance('user_delegation', $instance);
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/user_delegation/js/uploaduser.php?id='.$courseid);
 
-$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST)
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
 $config = get_config('block_user_delegation');
 
@@ -111,7 +111,7 @@ $PAGE->set_pagelayout('admin');
 $coursesarr = null;
 if (block_user_delegation_supports_feature('users/enrol')) {
     include_once($CFG->dirroot.'/blocks/user_delegation/pro/lib.php');
-    $coursearr = block_user_delegation_get_owned_courses();
+    $coursesarr = block_user_delegation_get_owned_courses();
 }
 
 $mform = new UploadUserForm($url, ['courses' => $coursesarr]);

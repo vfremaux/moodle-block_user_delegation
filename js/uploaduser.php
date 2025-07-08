@@ -57,17 +57,16 @@ $(document).ready(function() {
               $('#id_grouptoassign').append("<option><?php echo get_string('loadinggroups', 'block_user_delegation') ?></option>");
               $.getJSON('<?php echo $CFG->wwwroot ?>/blocks/user_delegation/serverside/service.php',{action:'GetCourseGroups',sesskey:skey,cid:course_id},function(data){
 
+                $('#id_grouptoassign').empty();
+                $('#id_grouptoassign').append("<option value='-1'><b><?php echo get_string('addnewgroup', 'block_user_delegation') ?></b></option>");
                 if (data.result == false) {
-                    $('#id_grouptoassign').empty();
                     $('#id_grouptoassign').append("<option><?php echo get_string('nogroups', 'block_user_delegation') ?></option>");
                 } else {
-                    $('#id_grouptoassign').empty();
+                    $('#id_grouptoassign').append("<option value='0'><b><?php echo get_string('nogroupassign', 'block_user_delegation') ?></b></option>");
                     $.each(data.result,function(i,obj){
-                    $('#id_grouptoassign').append("<option value='"+obj.id+"'>"+obj.name+"</option>");
+                    $('#id_grouptoassign').append("<option value='" + obj.id + "'>"+obj.name+"</option>");
                     });
                 }
-
-                $('#id_grouptoassign').append("<option value='-1'><b><?php echo get_string('addnewgroup', 'block_user_delegation') ?></b></option>");
 
                 $('#id_grouptoassign').on('change',function() {
                     var selected_value = $('#id_grouptoassign option:selected').val();
