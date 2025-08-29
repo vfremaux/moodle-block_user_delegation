@@ -440,7 +440,7 @@ if (!$fs->is_area_empty($usercontext->id, 'user', 'draft', $data->userfile)) {
             // Assign it to the selected course if any.
             if (!empty($data->coursetoassign)) {
                 include_once($CFG->dirroot.'/blocks/user_delegation/pro/lib.php');
-                block_user_delegation_enrol($data, $user, $theblock, $linenum, $log);
+                block_user_delegation_enrol($data, $user, $theblock, $linenum, $filename, $log);
             }
 
             $user = userdelegation::pre_process_custom_profile_data($user);
