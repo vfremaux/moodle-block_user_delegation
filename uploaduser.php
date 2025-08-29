@@ -48,7 +48,7 @@ $instance = $DB->get_record('block_instances', ['id' => $blockid], '*', MUST_EXI
 $theblock = block_instance('user_delegation', $instance);
 
 $PAGE->requires->jquery();
-$PAGE->requires->js('/blocks/user_delegation/js/uploaduser.php?id='.$courseid);
+$PAGE->requires->js_call_amd('block_user_delegation/upload_users_form', 'init');
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 

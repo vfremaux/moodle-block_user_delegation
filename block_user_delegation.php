@@ -170,10 +170,10 @@ class block_user_delegation extends block_base {
 
     /**
      * checks if a user has a some named capability effective somewhere in a course.
-     * @param string $capability
-     * @param bool $excludesystem
-     * @param bool $excludesite
-     * @param bool $doanything
+     * @param string $capability capability to check
+     * @param bool $excludesystem if true, avoid checking presence in system context
+     * @param bool $excludesite if true, avoid checking presence in SITEID course
+     * @param bool $doanything 
      * @param string $contextlevels
      */
     public static function has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {

@@ -50,7 +50,8 @@ $string['blockname'] = 'User Administration Subdelegation';
 $string['changeenrolment'] = 'Change enrolments';
 $string['colon'] = ':';
 $string['cohort'] = 'Cohort name';
-$string['cohortid'] = 'Cohort IDNumber';
+$string['cohortid'] = 'Cohort id';
+$string['cohortidnumber'] = 'Cohort IDNumber';
 $string['cohort_help'] = 'If set to some name, attach the user to the cohort (system level only), or create the systemlevel cohort with his name.';
 $string['cohortid_help'] = 'If set to some non empty value, will find the cohotr to add the user (system level), If cohort name is given and does not exist, thant sets the cohort IDNumber';
 $string['comma'] = ',';
@@ -74,6 +75,7 @@ $string['doseol'] = 'DOS Line endings';
 $string['duplicatemails'] = 'Duplicate mails count';
 $string['edituser'] = 'Edit User';
 $string['edituseradvanced'] = 'Edit User (advanced mode)';
+$string['emptygroupname'] = 'Leave empty to guess from filename';
 $string['enrolnotallowed'] = 'Enrol not allowed';
 $string['errorcreateuser'] = 'Error creating user record';
 $string['errorinvalidaccess'] = 'Invalid access parameter.';
@@ -164,6 +166,9 @@ $string['uservalid'] = 'Valid ... Redirecting';
 $string['validatinguser'] = 'Validating User.... Please wait';
 $string['viewmycourses'] = 'View my courses';
 $string['viewmyusers'] = 'View my users';
+$string['checkuserinvite'] = '
+Opps, it looks like that the user is already exists in our database, please choose one of the following:
+';
 
 $string['uploadusers_help'] = '
 <p>If you need import you owned users using a text file, it should be formated according to the following:</p>

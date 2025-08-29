@@ -14,25 +14,44 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace block_user_delegation\forms;
+
+require_once($CFG->dirroot.'/webservice/lib.php');
+require_once($CFG->dirroot.'/lib/formslib.php');
+
+use coding_exception;
+use core_user;
+use core_text;
+use core_component;
+use context_user;
+use webservice;
+use moodleform;
+
 /**
- * Form for advanced users definition.
+ * Form for editing a users profile
  *
- * @package     block_user_delegation
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright 1999 Martin Dougiamas  http://dougiamas.com
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package core_user
  */
-defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/blocks/user_delegation/editsimple_form.php');
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');    //  It must be included from a Moodle page.
+}
+
+require_once($CFG->dirroot.'/lib/formslib.php');
+require_once($CFG->dirroot.'/user/lib.php');
 
 /**
- * Form definition.
+ * Class user_editadvanced_form.
+ *
+ * @copyright 1999 Martin Dougiamas  http://dougiamas.com
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_editadvanced_form extends user_editsimple_form {
+class user_editadvanced_form extends moodleform {
 
     /**
-     * Standard definition.
+     * Define the form.
      */
     public function definition() {
         global $USER, $CFG, $COURSE;
@@ -40,6 +59,8 @@ class user_editadvanced_form extends user_editsimple_form {
         $mform = $this->_form;
         $editoroptions = null;
         $filemanageroptions = null;
+
+        $this->_form->disable_form_change_checker();
 
         if (!is_array($this->_customdata)) {
             throw new coding_exception('invalid custom data for user_edit_form');
@@ -55,81 +76,125 @@ class user_editadvanced_form extends user_editsimple_form {
 
         // Add some extra hidden fields.
         $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
-
+        $mform->setType('id', core_user::get_property_type('id'));
         $mform->addElement('hidden', 'course', $COURSE->id);
         $mform->setType('course', PARAM_INT);
 
         // Print the required moodle fields first.
         $mform->addElement('header', 'moodle', $strgeneral);
 
-        $mform->addElement('text', 'username', get_string('username'), 'size="20"');
+        $auths = core_component::get_plugin_list('auth');
+        $enabled = get_string('pluginenabled', 'core_plugin');
+        $disabled = get_string('plugindisabled', 'core_plugin');
+        $authoptions = array($enabled => array(), $disabled => array());
+        $cannotchangepass = array();
+        $cannotchangeusername = array();
+        foreach ($auths as $auth => $unused) {
+            $authinst = get_auth_plugin($auth);
+
+            if (!$authinst->is_internal()) {
+                $cannotchangeusername[] = $auth;
+            }
+
+            $passwordurl = $authinst->change_password_url();
+            if (!($authinst->can_change_password() && empty($passwordurl))) {
+                if ($userid < 1 and $authinst->is_internal()) {
+                    // This is unlikely but we can not create account without password
+                    // when plugin uses passwords, we need to set it initially at least.
+                } else {
+                    $cannotchangepass[] = $auth;
+                }
+            }
+            if (is_enabled_auth($auth)) {
+                $authoptions[$enabled][$auth] = get_string('pluginname', "auth_{$auth}");
+            } else {
+                $authoptions[$disabled][$auth] = get_string('pluginname', "auth_{$auth}");
+            }
+        }
+
+        $purpose = user_edit_map_field_purpose($userid, 'username');
+        $mform->addElement('text', 'username', get_string('username'), 'size="20"' . $purpose);
         $mform->addHelpButton('username', 'username', 'auth');
         $mform->setType('username', PARAM_RAW);
-        $mform->addRule('username', $strrequired, 'required', null, 'client');
+
+        if ($userid !== -1) {
+            $mform->disabledIf('username', 'auth', 'in', $cannotchangeusername);
+        }
+
+        $mform->addElement('selectgroups', 'auth', get_string('chooseauthmethod', 'auth'), $authoptions);
+        $mform->addHelpButton('auth', 'chooseauthmethod', 'auth');
 
         $mform->addElement('advcheckbox', 'suspended', get_string('suspended', 'auth'));
         $mform->addHelpButton('suspended', 'suspended', 'auth');
+
+        $mform->addElement('checkbox', 'createpassword', get_string('createpassword', 'auth'));
+        $mform->disabledIf('createpassword', 'auth', 'in', $cannotchangepass);
 
         if (!empty($CFG->passwordpolicy)) {
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
 
-        $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"');
+        $purpose = user_edit_map_field_purpose($userid, 'password');
+        $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"' . $purpose);
         $mform->addHelpButton('newpassword', 'newpassword');
-        $mform->setType('newpassword', PARAM_RAW);
+        $mform->setType('newpassword', core_user::get_property_type('password'));
+        $mform->disabledIf('newpassword', 'createpassword', 'checked');
+
+        $mform->disabledIf('newpassword', 'auth', 'in', $cannotchangepass);
+
+        // Check if the user has active external tokens.
+        if ($userid and empty($CFG->passwordchangetokendeletion)) {
+            if ($tokens = webservice::get_active_tokens($userid)) {
+                $services = '';
+                foreach ($tokens as $token) {
+                    $services .= format_string($token->servicename) . ',';
+                }
+                $services = get_string('userservices', 'webservice', rtrim($services, ','));
+                $mform->addElement('advcheckbox', 'signoutofotherservices', get_string('signoutofotherservices'), $services);
+                $mform->addHelpButton('signoutofotherservices', 'signoutofotherservices');
+                $mform->disabledIf('signoutofotherservices', 'newpassword', 'eq', '');
+                $mform->setDefault('signoutofotherservices', 1);
+            }
+        }
 
         $mform->addElement('advcheckbox', 'preference_auth_forcepasswordchange', get_string('forcepasswordchange'));
         $mform->addHelpButton('preference_auth_forcepasswordchange', 'forcepasswordchange');
+        $mform->disabledIf('preference_auth_forcepasswordchange', 'createpassword', 'checked');
 
         // Shared fields.
         useredit_shared_definition($mform, $editoroptions, $filemanageroptions, $user);
 
-        $mform->addElement('text', 'cohort', get_string('cohort'), 'size="40"');
-        $mform->addHelpButton('cohort', 'cohort', 'block_userdelegation');
-        $mform->setType('cohort', PARAM_TEXT);
-
-        $mform->addElement('text', 'cohortid', get_string('cohortidnumber', 'block_usergation'), 'size="40"');
-        $mform->addHelpButton('cohortid', 'cohortid', 'block_userdelegation');
-        $mform->setType('cohortid', PARAM_TEXT);
-
         // Next the customisable profile fields.
         profile_definition($mform, $userid);
 
-        if ($this->_customdata['userid'] == -1) {
+        if ($userid == -1) {
             $btnstring = get_string('createuser');
-            if (!empty($this->_customdata['courses'])) {
-                $lbl = get_string('coursetoassign', 'block_user_delegation');
-                $mform->addElement('select', 'coursetoassign', $lbl, $this->_customdata['courses']);
-            }
         } else {
-            $btnstring = get_string('update');
+            $btnstring = get_string('updatemyprofile');
         }
 
-        $this->add_action_buttons(false, $btnstring);
+        $this->add_action_buttons(true, $btnstring);
+
+        $this->set_data($user);
     }
 
     /**
-     * Changes the form after data is loaded.
+     * Extend the form definition after data has been parsed.
      */
     public function definition_after_data() {
         global $USER, $CFG, $DB, $OUTPUT;
 
-        $mform =& $this->_form;
-        if ($userid = $mform->getElementValue('id')) {
-            $user = $DB->get_record('user', ['id' => $userid]);
-        } else {
-            $user = false;
+        $mform = $this->_form;
+
+        // Trim required name fields.
+        foreach (useredit_get_required_name_fields() as $field) {
+            $mform->applyFilter($field, 'trim');
         }
 
-        // If language does not exist, use site default lang.
-        if ($langsel = $mform->getElementValue('lang')) {
-            $lang = reset($langsel);
-            // Check lang exists.
-            if (!get_string_manager()->translation_exists($lang, false)) {
-                $langel =& $mform->getElement('lang');
-                $langel->setValue($CFG->lang);
-            }
+        if ($userid = $mform->getElementValue('id')) {
+            $user = $DB->get_record('user', array('id' => $userid));
+        } else {
+            $user = false;
         }
 
         // User can not change own auth method.
@@ -147,17 +212,19 @@ class user_editadvanced_form extends user_editsimple_form {
         }
 
         // Require password for new users.
-        if ($userid == -1) {
-            $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
+        if ($userid > 0) {
+            if ($mform->elementExists('createpassword')) {
+                $mform->removeElement('createpassword');
+            }
         }
 
-        if ($user && is_mnet_remote_user($user)) {
+        if ($user and is_mnet_remote_user($user)) {
             // Only local accounts can be suspended.
             if ($mform->elementExists('suspended')) {
                 $mform->removeElement('suspended');
             }
         }
-        if ($user && ($user->id == $USER->id || is_siteadmin($user))) {
+        if ($user and ($user->id == $USER->id or is_siteadmin($user))) {
             // Prevent self and admin mess ups.
             if ($mform->elementExists('suspended')) {
                 $mform->hardFreeze('suspended');
@@ -169,10 +236,9 @@ class user_editadvanced_form extends user_editsimple_form {
             if ($user) {
                 $context = context_user::instance($user->id, MUST_EXIST);
                 $fs = get_file_storage();
-                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png')
-                        || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
+                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
                 if (!empty($user->picture) && $hasuploadedpicture) {
-                    $imagevalue = $OUTPUT->user_picture($user, ['courseid' => SITEID, 'size' => 64]);
+                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size' => 64));
                 } else {
                     $imagevalue = get_string('none');
                 }
@@ -203,40 +269,62 @@ class user_editadvanced_form extends user_editsimple_form {
         $usernew = (object)$usernew;
         $usernew->username = trim($usernew->username);
 
-        $user = $DB->get_record('user', ['id' => $usernew->id]);
-        $err = [];
+        $user = $DB->get_record('user', array('id' => $usernew->id));
+        $err = array();
 
-        if (!empty($usernew->newpassword)) {
-            $errmsg = '';
-            if (!check_password_policy($usernew->newpassword, $errmsg)) {
-                $err['newpassword'] = $errmsg;
+        if (!$user and !empty($usernew->createpassword)) {
+            if ($usernew->suspended) {
+                // Show some error because we can not mail suspended users.
+                $err['suspended'] = get_string('error');
+            }
+        } else {
+            if (!empty($usernew->newpassword)) {
+                $errmsg = ''; // Prevent eclipse warning.
+                if (!check_password_policy($usernew->newpassword, $errmsg, $usernew)) {
+                    $err['newpassword'] = $errmsg;
+                }
+            } else if (!$user) {
+                $auth = get_auth_plugin($usernew->auth);
+                if ($auth->is_internal()) {
+                    // Internal accounts require password!
+                    $err['newpassword'] = get_string('required');
+                }
             }
         }
 
         if (empty($usernew->username)) {
             // Might be only whitespace.
             $err['username'] = get_string('required');
-        } else if (!$user || $user->username !== $usernew->username) {
+        } else if (!$user or $user->username !== $usernew->username) {
             // Check new username does not exist.
-            if ($DB->record_exists('user', ['username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id])) {
+            if ($DB->record_exists('user', array('username' => $usernew->username, 'mnethostid' => $CFG->mnet_localhost_id))) {
                 $err['username'] = get_string('usernameexists');
             }
             // Check allowed characters.
-            if ($usernew->username !== block_user_delegation::strtolower($usernew->username)) {
+            if ($usernew->username !== core_text::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
-                if ($usernew->username !== clean_param($usernew->username, PARAM_USERNAME)) {
+                if ($usernew->username !== core_user::clean_field($usernew->username, 'username')) {
                     $err['username'] = get_string('invalidusername');
                 }
             }
         }
 
-        if (!$user || $user->email !== $usernew->email) {
+        if (!$user or (isset($usernew->email) && $user->email !== $usernew->email)) {
             if (!validate_email($usernew->email)) {
                 $err['email'] = get_string('invalidemail');
-                $params = ['email' => $usernew->email, 'mnethostid' => $CFG->mnet_localhost_id];
-            } else if ($DB->record_exists('user', $params)) {
-                $err['email'] = get_string('emailexists');
+            } else if (empty($CFG->allowaccountssameemail)) {
+                // Make a case-insensitive query for the given email address.
+                $select = $DB->sql_equal('email', ':email', false) . ' AND mnethostid = :mnethostid AND id <> :userid';
+                $params = array(
+                    'email' => $usernew->email,
+                    'mnethostid' => $CFG->mnet_localhost_id,
+                    'userid' => $usernew->id
+                );
+                // If there are other user(s) that already have the same email, show an error.
+                if ($DB->record_exists_select('user', $select, $params)) {
+                    $err['email'] = get_string('emailexists');
+                }
             }
         }
 
@@ -249,11 +337,6 @@ class user_editadvanced_form extends user_editsimple_form {
             return $err;
         }
     }
-
-    /**
-     * Disable form change signal.
-     */
-    public function disable_form_change_checker() {
-        $this->_form->disable_form_change_checker();
-    }
 }
+
+

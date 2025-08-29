@@ -57,9 +57,12 @@ class UploadUserForm extends moodleform {
 
             $options = ['0' => get_string('nogroupswaitcourseslection', 'block_user_delegation')];
             $mform->addElement('select', 'grouptoassign', get_string('grouptoassign', 'block_user_delegation'), $options);
+            $mform->disabledIf('grouptoassign', 'coursetoassign', 'eq', 0);
 
-            $mform->addElement('text', 'newgroupname', get_string('newgroupname', 'block_user_delegation'), '');
+            $attrs = ['size' => 64, 'placeholder' => get_string('emptygroupname', 'block_user_delegation')];
+            $mform->addElement('text', 'newgroupname', get_string('newgroupname', 'block_user_delegation'), $attrs);
             $mform->setType('newgroupname', PARAM_TEXT);
+            $mform->disabledIf('newgroupname', 'coursetoassign', 'eq', 0);
         }
 
         $mform->addElement('text', 'nomail', get_string('nomailplaceholder', 'block_user_delegation'));
@@ -79,7 +82,7 @@ class UploadUserForm extends moodleform {
         $mform->addElement('select', 'updateaccounts', get_string('updateaccounts', 'admin'), $yesnoopts);
         $mform->setDefault('updateaccounts', 1);
 
-        $mform->addElement('header', 'head0', get_string('fileformat', 'block_user_delegation'));
+        $mform->addElement('header', 'head1', get_string('fileformat', 'block_user_delegation'));
 
         $sepoptions = [';' => '(;) semicolon', ':' => '(:) colon', '(,) coma' => ',', "\t" => 'TAB'];
         $mform->addElement('select', 'fieldseparator', get_string('fieldseparator', 'block_user_delegation'), $sepoptions);

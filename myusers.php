@@ -182,7 +182,7 @@ if ($confirmuser && confirm_sesskey() && $cancreate) {
         }
 
         // If no more owners and need to delete, delete.
-        if (!userdelegation::has_other_owners($user->id) && @$config->lastownerdeletes) {
+        if (!userdelegation::has_other_owners($user->id) && !empty($config->lastownerdeletes)) {
             if (delete_user($user)) {
                 echo $OUTPUT->notification(get_string('deletedactivity', '', fullname($user, true)));
             } else {
