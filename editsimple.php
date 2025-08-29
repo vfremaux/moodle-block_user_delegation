@@ -30,8 +30,10 @@ require_once($CFG->dirroot.'/blocks/user_delegation/locallib.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/forms/editsimple_form.php');
 require_once($CFG->dirroot.'/blocks/user_delegation/block_user_delegation.php');
 require_once($CFG->dirroot.'/user/editlib.php');
-require_once($CFG->dirroot.'/user/lib.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
+require_once($CFG->dirroot.'/user/lib.php');
+
+use block_user_delegation\forms\user_editsimple_form;
 
 $id = optional_param('id', -1, PARAM_INT);    // Edited user id; -1 if creating new user.
 $blockid = required_param('blockid', PARAM_INT);    // The block instance id.
@@ -45,8 +47,7 @@ $params = ['blockid' => $blockid, 'course' => $courseid, 'id' => $id];
 $url = new moodle_url('/blocks/user_delegation/editsimple.php', $params);
 $PAGE->set_url($url);
 
-$PAGE->requires->jquery();
-$PAGE->requires->js('/blocks/user_delegation/js/user_edit.php?id='.$courseid);
+$PAGE->requires->js_call_amd('block_user_delegation/check_user', 'init');
 
 // Security.
 
@@ -66,51 +67,82 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_heading(get_string('pluginname', 'block_user_delegation'));
 $PAGE->navbar->add(get_string('edituser', 'block_user_delegation'));
 
-if ($id == -1) {
-    // Creating new user.
-    // Capability is given by course ownership.
-    $user = new stdClass();
-    $user->id = -1;
-    $user->auth = 'manual';
-    $user->confirmed = 1;
-    $user->deleted = 0;
-} else {
+if ($id > 0) {
     // Editing existing user.
     $personalcontext = context_user::instance($id);
 
     // Let be sure we are mentor.
     require_capability('block/user_delegation:isbehalfof', $personalcontext);
     $user = $DB->get_record('user', ['id' => $id], '*', MUST_EXIST);
+
+    $usercontext = context_user::instance($user->id);
+    $editoroptions = [
+        'maxfiles'   => EDITOR_UNLIMITED_FILES,
+        'maxbytes'   => $CFG->maxbytes,
+        'trusttext'  => false,
+        'forcehttps' => false,
+        'context'    => $usercontext,
+    ];
+
+    $user = file_prepare_standard_editor($user, 'description', $editoroptions, $usercontext, 'user', 'profile', 0);
+
+    // Load user preferences.
+    useredit_load_preferences($user);
+
+    // Load custom profile fields data.
+    profile_load_data($user);
+
+    // User interests separated by commas.
+    $user->interests = block_user_delegation::user_interests($id);
+
+    if ($user->id != $USER->id && is_primary_admin($user->id)) {  // Can't edit primary admin.
+        throw new moodle_exception('adminprimarynoedit');
+    }
+    if (isguestuser($user->id)) {
+        // The real guest user can not be edited.
+        throw new moodle_exception('guestnoeditprofileother');
+    }
+
+    if ($user->deleted) {
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading(get_string('userdeleted'));
+        echo $OUTPUT->footer($course);
+        die;
+    }
+} else {
+    $user = null;
+
+    $usercontext = null;
+    // This is a new user, we don't want to add files here.
+    $editoroptions = [
+        'maxfiles' => 0,
+        'maxbytes' => 0,
+        'trusttext' => false,
+        'forcehttps' => false,
+        'context' => $coursecontext,
+    ];
 }
 
-if ($user->id != $USER->id && is_primary_admin($user->id)) {  // Can't edit primary admin.
-    throw new moodle_exception('adminprimarynoedit');
-}
-if (isguestuser($user->id)) {
-    // The real guest user can not be edited.
-    throw new moodle_exception('guestnoeditprofileother');
-}
-
-if ($user->deleted) {
-    echo $OUTPUT->header();
-    echo $OUTPUT->heading(get_string('userdeleted'));
-    echo $OUTPUT->footer($course);
-    die;
-}
-
-// Load user preferences.
-useredit_load_preferences($user);
-
-// Load custom profile fields data.
-profile_load_data($user);
-
-// User interests separated by commas.
-$user->interests = block_user_delegation::user_interests($id);
+// Prepare filemanager draft area.
+$draftitemid = 0;
+$filemanagercontext = $editoroptions['context'];
+$filemanageroptions = [
+    'maxbytes'       => $CFG->maxbytes,
+    'subdirs'        => 0,
+    'maxfiles'       => 1,
+    'accepted_types' => 'web_image',
+];
 
 $coursesarr = user_delegation_get_owned_courses();
 
 // Create form.
-$userform = new user_editsimple_form($url, ['user' => $user, 'courses' => $coursesarr]);
+$params = [
+    'user' => $user,
+    'courses' => $coursesarr,
+    'editoroptions' => $editoroptions,
+    'filemanageroptions' => $filemanageroptions,
+];
+$userform = new user_editsimple_form($url, $params);
 
 if ($userform->is_cancelled()) {
     redirect(new moodle_url('/blocks/user_delegation/myusers.php', ['id' => $blockid, 'course' => $course->id]));
@@ -145,6 +177,8 @@ if ($newuser = $userform->get_data()) {
         $usercreated = true;
 
     } else {
+
+        $newuser->username = $user->username;
 
         try {
             user_update_user($newuser, false, false);
@@ -224,10 +258,15 @@ if ($user->id == -1) {
     echo $OUTPUT->heading($userfullname);
 }
 
-// Finally display the form.
+// Prepare a div for user check reporting.
+echo('<div id="existing_users" style="display: none"></div>');
 
+// Finally display the form.
 echo('<div style="font-size:11px;">');
 
+if (is_null($user)) {
+    $user = new Stdclass();
+}
 if (empty($user->country) && !empty($CFG->country)) {
     $user->country = $CFG->country;
 }
