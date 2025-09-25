@@ -46,6 +46,7 @@ $string['changeenrolment'] = 'Modifier les inscriptions';
 $string['colon'] = ':';
 $string['cohort'] = 'Nom de cohorte';
 $string['cohortid'] = 'Identifiant de cohorte';
+$string['cohortidnumber'] = 'Numéro idenifiant de cohorte';
 $string['cohort_help'] = 'Si un nom de cohorte est mentionné, l\'utilisateur créé y sera ajouté si elle existe. Une cohorte de ce nom sera ajoutée si elle n\'existe pas. Seule les cohortes système sont considérées.';
 $string['cohortid_help'] = 'Vous pouvez préciser une cohorte uniquement par son identifiant pour ajouter l\'utilisateur dans la cohorte, et si elle existe. Si la cohorte doit être créée (avec un nom donné) alors ce champ fournira l\'identifiant de cohorte associé.';
 $string['comma'] = ',';
@@ -69,6 +70,7 @@ $string['doseol'] = 'Fins de lignes DOS';
 $string['duplicatemails'] = 'Courriels en doublons';
 $string['edituser'] = 'Modification d\'un utilisateur';
 $string['edituseradvanced'] = 'Modification d\'un compte utilisateur (avancé)';
+$string['emptygroupname'] = 'Laisser vide pour utiliser le nom du fichier...';
 $string['enrolnotallowed'] = 'Vous n\'avez pas les autorisations pour gérer les inscriptions';
 $string['errornosuchuser'] = 'Cet utilisateur n\'existe pas';
 $string['errors'] = 'Erreurs&ensp;';
@@ -82,7 +84,7 @@ $string['filterconfirmed_confirmedonly'] = 'Seulement les confirmés';
 $string['filterconfirmed_unconformedonly'] = 'Seulement les non confirmés';
 $string['groupadded'] = 'Membre ajouté au groupe';
 $string['groupcreated'] = 'Groupe {$a} créé';
-$string['grouptoassign'] = 'Nom du groupe à créer';
+$string['grouptoassign'] = 'Assignation de groupe';
 $string['importusers'] = 'Importer mes utilisateurs';
 $string['inputfile'] = 'Fichier source';
 $string['institution'] = 'Institution';
@@ -152,6 +154,9 @@ $string['uservalid'] = 'Utilisateur valide. Redirection...';
 $string['validatinguser'] = 'Utilisateur en cours.... Patientez';
 $string['viewmycourses'] = 'Voir mes cours';
 $string['viewmyusers'] = 'Voir mes utilisateurs';
+$string['checkuserinvite'] = '
+Oups, on dirait que cet utilisateur existe déjà dans la base de données, vous pouvez choisir une des options suivantes :
+';
 
 $string['uploadusers_help'] = '
 
